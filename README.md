@@ -22,6 +22,33 @@ it has not been tested end to end on every one yet.
 - It never shows guests' personal data.
 - It says what the data cannot tell, for example booked vs. blocked nights.
 
+## Things you can ask
+
+- **Airbnb host**
+  - "Are my competitors already booked for 28 Dec-2 Jan? Should I raise my price?"
+  - "Which nights in the next few months are hot near me, and is my price high enough on them?"
+  - "Do I have gaps my minimum stay can't sell?"
+- **Property manager or co-host**
+  - "Where are my calendars losing nights to orphan gaps, across the whole portfolio?"
+  - "Which dates ahead are hot in each of my areas, and which units still charge a normal rate on them?"
+  - "An owner asks what their 2-bedroom could earn if I manage it. What do similar units nearby ask?"
+- **Company on several channels**
+  - "Am I in rate parity across all sites for each of the next 8 weekends?"
+  - "Which sites sell my property with free cancellation, and until when?"
+  - "Where are my 10 competitors cheapest, and how far below Booking.com?"
+- **Investor**
+  - "Does a pool or a sea view add enough to the nightly rate to justify paying more?"
+  - "Are listings here actually getting stays? How many reviews do they collect a year?"
+  - "How many listings would my unit compete with, and how many are run by large operators?"
+- **Market analyst or researcher**
+  - "What share of listings is run by hosts with 10 or more listings?"
+  - "What share of listings display a permit or registration number?"
+  - "What share of entire homes is already booked for a big event weekend?"
+
+It declines what the data can't show, such as last year's revenue, booking pace or Booking.com review
+scores, and offers the closest thing it can measure. More examples, each with its flow and cost:
+[`SPEC.md` section 16](str-agent/SPEC.md).
+
 ## Install
 
 Every platform needs the same two things:

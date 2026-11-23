@@ -526,7 +526,7 @@ Report shares: *"64% of Google-listed rentals here are on Vrbo"*.
 **Cost (estimate, Free plan):**
 - step 1: about $0.0025 per listing (`listing-details` plus `calendar`);
 - step 3: about $0.11-0.15 per listing (30 + H listings at $0.0035 each);
-- step 5: about $0.40 per listing analyzed (section 7, Standard, ÷ 3).
+- step 5: about $0.41 per listing analyzed (section 7, Standard, ÷ 3).
 - 50 listings, steps 1-4: about $5.60-7.60. That is above Apify's $5 free monthly usage, so say so and
   mention Apify's paid plans.
 
@@ -976,3 +976,96 @@ Top 3 actions:
 ```
 
 Then offer the per-listing scorecards, the price curve (step 7) or the channel prices (R8).
+
+---
+
+## 16. Example questions by user
+
+Typical questions from each kind of user, the flow that answers each one and what the answer must
+say. Use them to pick a flow and to show users what they can ask. Each one uses only the recipes and
+columns in this spec.
+
+- **Costs** are Free-plan estimates from section 5's prices, with `price-quote` charged (from
+  2026-12-06; R4 windows are free before then). Quote and confirm them before each run (section 3,
+  step 5).
+- **"After section 7"** (or R10, or R11) means the answer also uses rows that run returned. If it has
+  not run yet, add its cost: section 7 is about $0.41 per listing (Standard) or $0.28 (Express).
+- **"Partly answerable"** rows must use the wording in their caveat.
+- Sections 4 and 11 apply to every answer. The caveat column lists what each answer must state.
+- The market analyst (journalist, consultant, city planner) is not in section 1's table. Start them
+  with R11, R2 or R6.
+
+### 16.1 Airbnb host (1-10 listings)
+
+| Question | Flow | Key columns or outputs | Caveat to state | Cost (Free plan) |
+|---|---|---|---|---|
+| "How do my listings compare with my real competition, and what should I change first?" | Section 7 | Portfolio view and scorecards (section 10): price percentile, occupancy range, rating and sub-ratings, amenity gaps, top 3 actions | n comps per listing; how many of the host's own units were left out; occupancy is a range ("booked or blocked"); prices are asking prices | About $1.22 for 3 listings; Express $0.83 |
+| "Are my competitors already booked for 28 Dec-2 Jan? Should I raise my price?" | Section 7, steps 1-4 (Express), with those dates; the demand rule (section 10) | Share of comps with `unavailable_reason` "DATE" (e.g. "15 of 20"); price percentile on `price_per_night_before_taxes` | "Booked or blocked", and "at least" (section 11, rule 13); the demand rule needs 5+ comps, 70%+ of them booked and the host's listing still free; no price percentile from fewer than 5 priced comps | About $0.28 per listing |
+| "Which nights in the next few months are hot near me, and is my price high enough on them?" | Section 8, "Hot dates" (R7 with `"calendarDays": true` on 30+ comps), then R4 windows on those nights (`dateWindows` also takes explicit stays: `{"checkIn": "…", "checkOut": "…"}`) | Hot dates (20+ points above the median of the 14 days before and after); the host's price percentile on them | A share of comps booked or blocked, not a count of bookings; the next 15 days are left out; future percentiles lean high: say how many comps had no quote | After section 7: about $0.17, plus about $0.11 per listing |
+| "Do I have gaps my minimum stay can't sell? What minimum do my comps use midweek?" | Section 8, "Orphan nights and minimum stay" | Free gaps shorter than `min_nights` in the host's daily rows; the comps' `min_nights` by weekday from their daily rows (R7) | Gaps sit between booked-or-blocked nights; public calendars can't tell which | $0 after section 7 (step 1 has the host's daily rows); the comps' daily rows: about $0.11 for 20. The host's calendar alone (R7): $0.0055 per listing |
+| "What do my guests complain about most, and do guests say the same about my competitors?" | R5 on the host's listings; section 7, step 5, for the comps | Complaint themes per 100 reviews, `review_tags`, `rating_3_or_less_pct`, the host vs. the comps | Fixes come only from the host's own reviews; the comps' themes are market context; give the number of reviews read | $0.01 per listing (20 reviews); the comps' reviews: about $0.10 per listing |
+| "Would a hot tub let me charge more here?" | Section 9's rule on the comp set (section 8, "Amenities that pay here") | Median `price_per_night_before_taxes` with vs. without it (`key_amenities`, `has_*`), n on each side | An association, not a cause; groups under 15 are "indicative"; with fewer than 5 priced comps on a side, use section 9's measured list and say so; never "add X and earn Y" | $0 after section 7 |
+| "How does my price compare with my comps week by week over the next two months, weekends included?" | Section 8, "Future price vs. comps" (section 7, step 7, with two sets of windows in one `dateWindows`: weekends and midweek) | Percentile per week, weekend premium, `discount_labels` | Future percentiles lean high (section 11, rule 4): say how many comps had no quote each week; the same windows for the host and the comps | About $0.19 per listing after section 7 ($0.03 before 2026-12-06) |
+| "Should I turn on Instant Book or change my cancellation policy?" | Section 7, "Friction" KPI, and the Instant Book rule (section 10) | `instant_book`, `cancellation_policy`, `min_nights`, `host_response_time`, vs. the comps | `instant_book` is known only for comps with a price for the dates: give that n; an association, not proof of more bookings | $0 after section 7 |
+
+### 16.2 Property manager or co-host (10-500 listings)
+
+| Question | Flow | Key columns or outputs | Caveat to state | Cost (Free plan) |
+|---|---|---|---|---|
+| "Which of my 40 listings are mispriced against their comps?" | R10, steps 1-4 | Flags per listing (section 10 rules), grouped by area and type | No price flag for a listing with no price for the dates: say how many; n comps per listing; the full section 7 (step 5) only for the most flagged, after a yes | About $4.50-6.10 for 40 listings: say it can pass Apify's $5 free monthly usage. Step 5: about $0.41 per listing |
+| "Which units have the weakest occupancy for the next 90 days compared with their comps?" | R10, step 4: "occupancy at the bottom of the range" | Each unit's range (`est_occupancy_calendar_adjusted_90` to `est_occupancy_calendar_90`) vs. its comps' 25th percentile | Ranges, "booked or blocked"; the next 90 days only, never last year; owner blocks raise the ceiling | $0 after R10, steps 1-4 |
+| "Where are my calendars losing nights to orphan gaps, across the whole portfolio?" | Section 8, "Orphan nights", from R7 with `"calendarDays": true` on the portfolio's listing IDs | Gaps shorter than `min_nights` per unit, nights lost, units ranked | Gaps sit between booked-or-blocked nights | $0.0055 per listing (50 listings: about $0.28) |
+| "Which dates ahead are hot in each of my areas, and which units still charge a normal rate on them?" | Section 8, "Hot dates", per area group (R10, step 2), then R4 on the units there | Hot dates per area; each unit's price on them vs. its own price in the weeks around them | A booked-or-blocked share, not bookings; the next 15 days are left out; a unit booked on a hot date has no price there | About $0.17 per area (daily calendars of 30 listings from R10, step 3), plus $0.007 per unit for 12 windows ($0.0015 before 2026-12-06) |
+| "Which of my units collect the most complaints, and about what?" | R10, step 1 rows, then R5 on the worst units | `rating_3_or_less_pct`, `rating_*`, `review_tags`; complaint themes per 100 reviews | Each unit's own reviews only, with the number read; never guests' names | Step 1 has the ratings; R5: $0.01 per unit (20 reviews) |
+| "An owner asks what their 2-bedroom could earn if I manage it. What do similar units nearby ask, and how full are they?" | R11 on a `bbox` around the address, with `"bedroomsExact": 2` | `est_adr` median and quartiles, occupancy range, monthly revenue range (section 8), each with n | Asking rate, not the price paid; ranges; rates only for listings with a price on the dates (about half); no history | $0 count, then up to $0.70 |
+| "Which of my listings show no permit number while most comps nearby do?" | Section 8, "Permit signals", on the R10 rows | `license_number` on the units and on their comps | A displayed number is not proof of legality, and a missing one is not proof of illegality; no legal advice | $0 after R10, steps 1 and 3 |
+| "Which units lack an amenity that their area's comps charge more for?" | Section 9's rule per area group, on the R10, step 3 rows | Key amenities per area (premium, n on each side) and the units without them | An association, not a cause; groups under 15 are "indicative" | $0 after R10, steps 1-4 |
+
+### 16.3 Company on several channels (aparthotels, serviced apartments, hotels)
+
+| Question | Flow | Key columns or outputs | Caveat to state | Cost (Free plan) |
+|---|---|---|---|---|
+| "What does my property cost on Booking.com, Expedia and my own site for 11-18 Apr, and how does my Airbnb price compare?" | R8 | `offers` rows: `provider`, `price_per_night`, `price_per_night_before_taxes`, `is_official_site`, `free_cancellation`, `link`; the Airbnb `price_per_night_before_taxes` | "On Google's price list for those dates": public prices, not logged-in or package prices; flag `member_price`; compare with Airbnb before taxes | $0.0065 per property and date range ($0.005 without Airbnb) |
+| "Am I in rate parity across all sites for each of the next 8 weekends?" | R8 once per weekend; R4 `dateWindows` for the Airbnb side | Gaps above 5% per site and weekend | As above; a site missing from Google's list for a date is not proof it doesn't sell the property | About $0.045 per property |
+| "Which sites sell my property with free cancellation, and until when?" | R8 | `free_cancellation`, `free_cancellation_until`, `price_per_night` per site | As Google shows it for those dates and guests | $0.005 per property and date range |
+| "Where are my 10 competitors cheapest, and how far below Booking.com?" | R9 (section 8, "Competitors' rates per site") | `cheapest_provider`, `is_official_site`, the median gap to Booking.com, n | One snapshot for those dates; Google's public prices | $0.05 per run |
+| "Track my 20 competitors' rates every day and tell me who changed what." | R9, saved by the user as an Apify task with a Schedule; compare runs by `property_id` and `provider` | Real changes only, with the dates of the runs | Changes exist only from the first scheduled run on; the bot explains the schedule and never creates it | $0.10 per run (about $3 a month, daily) |
+| "How do my aparthotel's rates compare with 3-4 star hotels and Airbnb rentals within 3 km?" | R2 with `"hotelStarClasses": ["3", "4"]` and `areaFilter` | `COMPARISON` medians per source and segment; `price_per_night_before_taxes` | Before-tax prices on every source; Google and Airbnb ratings are different scales; a 2-bedroom is not two hotel rooms | Up to $0.20 (100 hotels in two star classes, 50 rentals, 50 Airbnb); `COMPARISON` is free |
+| "Which sites list the vacation rentals in my area?" | R6 | Shares from `providers`, `vrbo_id`, `expedia_id`, `booking_url`, n | Only the rentals Google lists; listed is not booked | Up to $0.05 (50 rentals) |
+
+### 16.4 Investor
+
+| Question | Flow | Key columns or outputs | Caveat to state | Cost (Free plan) |
+|---|---|---|---|---|
+| "What can a 2-bedroom earn in Lisbon?" | R11 | `est_adr`, occupancy range, monthly revenue range (`est_adr` × the range × 30.4), each with n | Asking rate, not paid; the next 90 days, not a year; rates and revenue only for listings with a price on the dates (about half); no history | $0 count, then up to $0.70 |
+| "With my price, 25% down and my yearly costs, what cap rate and cash-on-cash could it make?" | R11, step 4; section 8, "Revenue range + investor math" | Cap rate and cash-on-cash as ranges, plus a sensitivity line | Only the user's own numbers, never invented costs; only as good as the revenue range | $0 after R11 |
+| "1-bedroom or 2-bedroom in this area: which earns more for what it costs?" | R11 twice (`"bedroomsExact": 1`, then `2`) | Asking rate, occupancy range and revenue range per type, n for each; per dollar only with the user's purchase prices | As above, for each type | $0 counts, then up to $1.40 |
+| "Does a pool or a sea view add enough to the nightly rate to justify paying more?" | Section 9's rule on the R11 sample | Premium (median with ÷ median without), n on each side, from `key_amenities`, `has_pool`, `has_sea_view` | An association, not a cause; "indicative" under 15; the pool's kind (shared, private, unknown) | $0 after R11 |
+| "How many listings would my unit compete with, and how many are run by large operators?" | R11, step 1 (free count); `host_listings_total` on the R11 rows | `estimate.listings_estimated`; share of sampled listings whose host has 10+ listings | Airbnb's approximate count: "at least" for booked listings, and it varies between runs; `host_listings_total` counts the host's listings anywhere on Airbnb; the share is of the sample (n) | $0 count; the share is $0 after R11 |
+| "Do most listings here show a permit or registration number?" | Section 8, "Permit signals", on the R11 rows | Share with `license_number`, n | Display, not legality; no legal advice | $0 after R11 |
+| "Which months over the next year ask the highest nightly rates for this unit type?" (partly answerable) | R4 monthly windows (`"count": 12, "stepDays": 30`) on about 20 listings from the R11 sample | Median asking `price_per_night_before_taxes` per month, with how many listings quoted | Say "asking rates by month", never seasonality of demand or revenue: booked listings don't quote and cheap ones book first, so medians lean high (section 11, rule 4) | About $0.14 for 20 listings after R11 ($0.03 before 2026-12-06) |
+| "Are listings here actually getting stays? How many reviews do they collect a year?" | R11 with `"dataLevel": "leads"` (priced like `revenue`) | `reviews_last_12m` (median and quartiles), `est_occupancy_reviews`, n | Only some guests review: a demand signal, not a count of stays; an independent check on the calendar range | Up to $0.70, as R11 |
+
+### 16.5 Market analyst or researcher (journalist, consultant, city planner)
+
+| Question | Flow | Key columns or outputs | Caveat to state | Cost (Free plan) |
+|---|---|---|---|---|
+| "How many entire homes and how many private rooms are listed on Airbnb in Lisbon?" | R1 with `"dataLevel": "estimate"`, once per `roomTypes` value | `estimate.listings_estimated` per type | Airbnb's approximate count of active listings today: "at least" for booked ones, and it varies between runs; listings, not the housing stock; no history | $0 |
+| "What occupancy and asking rates are entire homes running at for the next 90 days?" | R11 (unit filters optional) | Occupancy range, `est_adr` median and quartiles, n | A range ("booked or blocked"); asking rate; the next 90 days only; a sample of up to 200, not a census | Up to $0.70 |
+| "What share of listings is run by hosts with 10 or more listings?" | `host_listings_total` on the R11 rows | Share of sampled listings per host-size band, n | The host's listings anywhere on Airbnb, not only in the area; a sample; no host names, and nothing inferred about individuals | $0 after R11 |
+| "What share of listings display a permit or registration number?" | Section 8, "Permit signals", on the R11 rows | Share with `license_number`, n | Display only: not proof of legality or illegality; no legal advice | $0 after R11 |
+| "What share of entire homes is already booked for <event dates>?" | R11 with those dates as `checkIn` and `checkOut` | Share with `unavailable_reason` "DATE", n; optionally "Hot dates" (section 8) for the weeks around them | "Booked or blocked" and "at least"; listings closed by a minimum-stay or check-in rule are not demand | Up to $0.70; hot dates on 30 of the sampled listings: about $0.17 more |
+| "How do Airbnb prices compare with hotel prices in the city for the same week?" | R2 | `COMPARISON` medians per source and segment (bedrooms, star class) | Before-tax prices for those dates; ratings on different scales; a 2-bedroom is not two hotel rooms | Up to $0.15; `COMPARISON` is free |
+| "What share of the area's vacation rentals are also sold on Vrbo, Booking.com or Expedia?" | R6 | Share per site from `providers`, n | Rentals Google lists, not all of Airbnb; listed is not booked | Up to $0.05 for 50 rentals, plus $0.001 per extra rental (`maxItemsPerSource`) |
+| "Which booking sites dominate hotel distribution here, and how often is a hotel's own site the cheapest?" | R2 with `"sources": ["hotels"]`, `"includeOffers": true`, `"maxItemsPerSource": 20`, `"maxOfferProperties": 20` and no `outputFormat` | From the `offers` rows: share of hotels with each `provider` on their list; share of hotels whose cheapest site (lowest `price_per_night`) is their official one (`is_official_site`) | Google's price list for those dates and guests, with n hotels; presence on a list, not a share of bookings | About $0.10 |
+
+### 16.6 Questions to decline or reframe
+
+| They ask | Why not | Offer instead |
+|---|---|---|
+| "What did my listing (or this market) earn last year?" | No history (section 11, rule 3) | An asking-rate and occupancy-range estimate for the next 90 days, and the monthly revenue range from them (section 7 or R11), with n |
+| "How is my booking pace compared with last year?" | Pace needs history (section 13) | The share of comps booked or blocked for the user's dates today (section 7) and hot dates ahead (section 8). For pace from now on: a monitor the user schedules (section 8) |
+| "What's my Booking.com review score compared with my competitors'?" | No Booking.com or Agoda reviews or scores (section 11, rule 12) | Whether each property is listed on Booking.com, its price for the dates and the link (R8); Airbnb ratings and review themes (R5) |
+| "Which channel brings me the most bookings? How many people search for my area?" | Booking channel mix and search demand are out of scope (section 13) | Which sites list the property and the area's rentals (R6, R8), and how many comps are booked or blocked for the dates |
+| "Is my cleaning fee too high?" | Airbnb folds cleaning and service fees into the nightly price (`fees_included_in_rate` true on every priced row in the test runs). The Actors can only estimate the cleaning fee, with low confidence (`estimateCleaning`: 2 extra quotes per listing, result in `full_json`) | The nightly price before taxes, fees included, against the comps (section 7); the low-confidence estimate only if the user asks |
+| "Is short-term renting legal here? How many nights a year are homes rented?" | No legal advice (section 11, rule 7) and no yearly night counts | The share of listings showing a permit number (section 8) and the booked-or-blocked range for the next 90 days |

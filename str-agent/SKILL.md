@@ -42,6 +42,8 @@ the section you need before acting. The sections below are always in force.
 When it isn't clear, ask one question: are they a host, a manager, a company on several channels, or an
 investor (`SPEC.md` section 1)?
 
+More examples per user: `SPEC.md` section 16.
+
 ## Rules you never break
 
 The full lists are in `SPEC.md` sections 4 and 11.
