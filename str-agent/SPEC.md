@@ -72,9 +72,22 @@ history and must never pretend to.
    browser. The user never pastes an API token, and the bot never asks for one.
    - **Grok:** Apify's official Grok Bot plugin (Settings → Plugins → Apify → Add). Docs:
      https://docs.apify.com/platform/integrations/grok-bot
-   - **Claude (claude.ai or Claude Desktop):** Settings → Connectors → find "Apify" in the directory. Or
-     choose "Add custom connector", name it `Apify` and enter `https://mcp.apify.com`. The skill also
-     needs code execution on (Settings → Capabilities). Docs: https://docs.apify.com/platform/integrations/mcp
+   - **Claude (claude.ai or Claude Desktop):** Apify is added by hand as a **custom connector**. Use the
+     custom connector even if Apify appears in Claude's connector list: the agent needs Apify's
+     `call-actor` tool, which the custom connector serves. Steps:
+     1. Open this link while signed in to claude.ai. It opens the "Add custom connector" window with the
+        name and URL already filled in:
+        https://claude.ai/new?modal=add-custom-connector&connectorName=Apify&connectorUrl=https%3A%2F%2Fmcp.apify.com%2F%3Fclient%3Dclaude
+        Or do it by hand: Settings → Connectors → **Add custom connector**, Name `Apify`, URL
+        `https://mcp.apify.com`.
+     2. Click **Add**, then **Connect**. Apify's sign-in page opens: sign in, or create a free Apify
+        account, and approve.
+     3. In a new chat, check that Apify is on in the chat's tools menu (the "+" or tools button). If the
+        Apify tools still don't appear, start a new chat.
+
+     The connector then works in claude.ai and Claude Desktop with the same Claude account. Claude's Free
+     plan allows one custom connector. The skill also needs code execution on (Settings → Capabilities). Docs:
+     https://docs.apify.com/platform/integrations/mcp
    - **Claude Code:** `claude mcp add apify "https://mcp.apify.com" -t http`. The sign-in page opens on
      first use.
    - **ChatGPT:**

@@ -32,7 +32,7 @@ Every platform needs the same two things:
 
 | Platform | Connect Apify | Load the agent |
 |---|---|---|
-| Claude (claude.ai, Desktop) | Settings → Connectors → Apify, or a custom connector with `https://mcp.apify.com` | Upload [`dist/str-agent.zip`](dist/str-agent.zip) as a skill |
+| Claude (claude.ai, Desktop) | Add a **custom connector** by hand (steps below): URL `https://mcp.apify.com` | Upload [`dist/str-agent.zip`](dist/str-agent.zip) as a skill |
 | Claude Code | `claude mcp add apify "https://mcp.apify.com" -t http` | `mkdir -p ~/.claude/skills && cp -r str-agent ~/.claude/skills/` |
 | ChatGPT | Developer mode → Apps & Connectors → Create, with `https://mcp.apify.com` (beta; depends on your plan) | A Project or GPT: paste `SKILL.md` into the instructions and add `SPEC.md` as a file |
 | Grok | Apify's Grok Bot plugin | Build a template from `SPEC.md` |
@@ -40,8 +40,18 @@ Every platform needs the same two things:
 
 ### Claude (claude.ai or Claude Desktop), step by step
 
-1. **Connect Apify:** Settings → Connectors → Apify. If it isn't listed, choose Add custom connector and
-   enter `https://mcp.apify.com`. Then sign in to Apify.
+1. **Connect Apify as a custom connector.** Apify is added by hand. Use the custom connector even if
+   Apify appears in Claude's connector list: the agent needs Apify's `call-actor` tool, which the custom
+   connector serves.
+   - **Fastest:** while signed in to claude.ai, open
+     [this link](https://claude.ai/new?modal=add-custom-connector&connectorName=Apify&connectorUrl=https%3A%2F%2Fmcp.apify.com%2F%3Fclient%3Dclaude). It opens the "Add custom connector" window with the name and URL filled in.
+   - **By hand:** Settings → Connectors → **Add custom connector**. Name: `Apify`. Remote MCP server URL:
+     `https://mcp.apify.com`.
+   - Click **Add**, then **Connect**. Apify's sign-in page opens: sign in, or create a free account, and
+     approve. No API token is pasted anywhere.
+   - In a new chat, make sure Apify is turned on in the chat's tools menu (the "+" or tools button).
+   - It then works in claude.ai and Claude Desktop with the same account. Claude's Free plan allows one
+     custom connector.
 2. **Turn on code execution:** Settings → Capabilities.
 3. **Upload the skill:** download [`dist/str-agent.zip`](dist/str-agent.zip), then go to Customize → Skills →
    Upload a skill.

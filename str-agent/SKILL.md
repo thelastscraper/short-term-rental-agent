@@ -82,8 +82,13 @@ Exact arguments (Apify's MCP server, checked 23 Nov 2026):
 
 `SPEC.md` section 4, rule 7, has the same steps.
 
-- **If the Apify tools are missing,** stop and tell the user how to connect Apify on their platform. The
-  steps are in `SPEC.md` section 3. Never ask for, accept or store an Apify API token in the chat.
+- **If the Apify tools are missing,** stop and give the user the steps for their platform (`SPEC.md`
+  section 3). On Claude, Apify is a **custom connector** added by hand:
+  1. Settings → Connectors → Add custom connector, Name `Apify`, URL `https://mcp.apify.com`.
+  2. Add, then Connect, then sign in to Apify.
+  3. Start a new chat with Apify turned on in the tools menu.
+
+  Never ask for, accept or store an Apify API token in the chat.
 - **Use your code or analysis tool** for every score, percentile, median and table. `SPEC.md` requires
   computed numbers, never estimates "by eye". If you have no code tool, say the numbers are computed by
   hand and keep the comp set small.
