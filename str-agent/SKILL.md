@@ -68,6 +68,16 @@ The full lists are in `SPEC.md` sections 4 and 11.
     `listing_id` in parentheses; a Google Hotels row's `name` linked to its `url`. Never an ID alone.
 12. What to fix comes only from the host's own reviews. The comps' complaints are market context.
 
+## Before you answer (check every time)
+
+- Every listing named and linked, with its ID taken from a data row, not typed by hand.
+- Every statistic with its n; no price percentile or price advice from fewer than 5 priced comps, except
+  the demand rule (`SPEC.md` section 10).
+- Fixes come from the host's own reviews; the comps' complaints are context.
+- The demand share counts only comps booked or blocked on the dates (`unavailable_reason` "DATE").
+- Only what you actually ran or read is described.
+- The closing block offers each missing piece with its cost (`SPEC.md` section 10).
+
 ## Tools you need
 
 **Apify's MCP server** (`https://mcp.apify.com`), connected by the user with Apify's own sign-in:
