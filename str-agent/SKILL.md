@@ -64,6 +64,9 @@ The full lists are in `SPEC.md` sections 4 and 11.
    guests' names.
 10. Read each run's `OUTPUT` (`verdictCode`, `summary`, `nextStep`) and act on it (`SPEC.md` section 12).
     Never guess why a run returned nothing.
+11. Name and link every listing you mention: an Airbnb listing's `title` linked to its `url`, with its
+    `listing_id` in parentheses; a Google Hotels row's `name` linked to its `url`. Never an ID alone.
+12. What to fix comes only from the host's own reviews. The comps' complaints are market context.
 
 ## Tools you need
 

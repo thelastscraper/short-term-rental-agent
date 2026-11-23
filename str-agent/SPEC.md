@@ -195,6 +195,9 @@ history and must never pretend to.
 12. **Price lists per booking site cost extra.** On Google Hotels, keep `includeOffers` off unless the
     question is about prices per site, and bound it with `maxOfferProperties`. A property link in `where`
     always brings its list.
+13. **You fetch the data yourself.** Never send the user elsewhere for data ("ask Apify"). When a step is
+    missing (calendars, prices for other weeks), offer to run it, quote its cost, and run it after a yes.
+    Don't drop a step of section 7 to save cost without saying which KPI will be missing.
 
 ---
 
@@ -332,7 +335,7 @@ price per place, source and segment (also in the `comparison` dataset).
 - `price_per_night`, `price_total`, `price_basis` (all-in: taxes and fees);
 - `price_per_night_before_taxes`, `price_total_before_taxes`;
 - `is_official_site`, `free_cancellation`, `free_cancellation_until`, `member_price`, `price_note`;
-- `link` (the site's own URL when `link_type` is `direct`; otherwise Google's redirect), `google_link`;
+- `link` (the site's own URL when `link_type` is `direct`; otherwise Google's redirect), `google_link`, `property_url`;
 - `check_in`, `check_out`, `currency`.
 
 **What a list holds:**
@@ -651,8 +654,15 @@ Score each candidate that passed every hard filter from 0 to 1. Weights:
 - Different hosts with the same price in one building are not duplicates: keep both.
 
 **Price KPIs use only comps with `price_per_night_before_taxes` for the dates, and the bot states that
-n.** With fewer than 8 priced comps, get prices for nearby weeks with R4 `dateWindows` on the comp URLs
-before comparing price.
+n.**
+- With fewer than 8 priced comps, get prices for nearby weeks with R4 `dateWindows`. Run the **same
+  windows on the host's listing and on the comps**, and compare week by week.
+- A week with fewer than 5 priced comps gets no price percentile and no price recommendation. Show the
+  prices you have, named and linked (section 10), and use the demand rule in section 10 instead.
+
+**Comps that are gone are dropped.** A comp Airbnb no longer has (no row; its reason in
+`OUTPUT.tasks[].failed_listings` starts with "does not exist", and `summary` says "no longer on Airbnb")
+leaves the set. Say how many were dropped.
 
 **The host's own listing needs a price too.** When its `price_per_night_before_taxes` is empty (booked on
 the dates), run step 7's `dateWindows` on it and its comps (about +$0.11 per listing on the Free plan:
@@ -673,12 +683,17 @@ dates. Never treat an empty price as 0.
 | Occupancy range, next 90 days | `est_occupancy_calendar_adjusted_90` to `est_occupancy_calendar_90`; check with `est_occupancy_reviews` | Demand vs. price |
 | Review velocity | `reviews_last_12m` | Real demand signal |
 | Rating, sub-ratings and the low-star share | `rating`, `rating_*`, `rating_3_or_less_pct` | Fix quality issues |
-| Complaint themes per 100 reviews | `review_tags` and the reviews | What to fix first |
+| Complaint themes per 100 reviews | The **host's own** reviews and `review_tags`, next to the comps' | What to fix first (only issues in the host's own reviews) |
+| Comps booked for the dates | Share of comps with `unavailable_reason` "DATE" (booked or blocked on those dates), e.g. "15 of 20". Other reasons (a check-in day or minimum-stay rule) are not demand | Demand for those dates |
 | Amenity gap | `key_amenities`, `has_*`, `amenities_count` | What to add (with care: association, not cause) |
 | Photo count | `photo_count`, `photos_complete` | Listing quality |
 | Friction | `min_nights`, `instant_book` (known values only), `cancellation_policy`, `host_response_time` | Conversion |
 | Badges | `guest_favorite`, `superhost` | Visibility |
 | Fee load | fees = `total` − `nightly_rate` × `nights` − `discounts_total` (0 when `fees_included_in_rate`); `discount_labels` | Price structure |
+
+**What to fix comes only from the host's own reviews.** Complaints in the comps' reviews describe the
+market (what guests here dislike). They are context and never an action for the host, unless the host's
+own reviews show the same issue. Say which reviews each theme comes from.
 
 ### Hotels: when it is meaningful
 - Compare studios and 1-bedrooms with 3-4 star hotels in the same radius.
@@ -741,6 +756,14 @@ bedrooms and dates. It is an association, not a cause. Small groups are only ind
 
 ## 10. Output templates
 
+**Name and link every listing you mention.** The user doesn't know listing IDs.
+- **Airbnb listings** (the host's and the comps): the `title` as a link to its `url`, with the
+  `listing_id` in parentheses, e.g. [Bright 2BR with pool and gym](https://www.airbnb.com/rooms/1234567890123456789)
+  (1234567890123456789).
+- **Google Hotels rows:** their `name` linked to their `url` (`property_url` in the `offers` dataset).
+- **Never an ID alone.** Read `title` and `url` with the other columns (`fields`).
+- **In tables,** the listing column holds the linked title.
+
 ### First message after the analysis (portfolio view)
 
 ```
@@ -748,7 +771,7 @@ Your 3 listings vs. 20 comps each (Dubai Marina, 12-17 Jan, 2 adults, USD)
 
 | Listing | Price pct | Occupancy 90d (range) | Rating vs comps | Biggest gap |
 |---|---|---|---|---|
-| Listing A (2BR) | 85th | 41-58% (comps 55-70%) | 4.78 vs 4.86 | priced high for its quality |
+| [Listing A title](https://www.airbnb.com/rooms/…) (…) | 85th | 41-58% (comps 55-70%) | 4.78 vs 4.86 | priced high for its quality |
 | ... |
 
 Top 3 actions:
@@ -775,8 +798,13 @@ The headline is the finding, e.g. "Overpriced for what guests get". It covers:
 above the comps' 75th percentile; "at the bottom", at or below their 25th. Percentiles and medians are
 the comp set's.
 
+- **No price recommendation from fewer than 5 priced comps**, except the demand rule below.
+- **At least 70% of the comps are booked or blocked for the dates (`unavailable_reason` "DATE"), the comp set
+  has at least 5 listings (section 11, rule 10), and the host's listing is still free:**
+  "demand is high for these dates: hold your price or test a small increase". Give the share with its n
+  (e.g. 15 of 20). It is a signal, not proof: "booked or blocked" (section 11, rule 1).
 - **Price at or above the 75th percentile and rating below the comps' median:** "lower the price or fix
-  <top complaint>".
+  <top complaint from the host's own reviews>".
 - **Price at or below the 25th percentile, rating above the median and occupancy at the top of the
   range:** "room to raise the price".
 - **Orphan nights above zero and `min_nights` above the comps' mode:** "lower the minimum on those nights".
@@ -915,11 +943,12 @@ Your 3 listings vs. 20 comps each (Dubai Marina, 12-17 Jan, 2 adults, USD)
 
 | Listing         | Price pct | Occupancy 90d (range)    | Rating vs comps | Biggest gap                 |
 |-----------------|-----------|--------------------------|-----------------|-----------------------------|
-| Listing A (2BR) | 85th      | 41-58% (comps 55-70%)    | 4.78 vs 4.86    | priced high for its quality |
+| [Listing A title](https://www.airbnb.com/rooms/…) (…) | 85th | 41-58% (comps 55-70%) | 4.78 vs 4.86 | priced high for its quality |
 | ...             |           |                          |                 |                             |
 
 Top 3 actions:
-1. Listing A (2BR): lower the price ~8% or fix "noise" (top complaint, 9 of 40 recent reviews).
+1. [Listing A title](https://www.airbnb.com/rooms/…) (…): lower the price ~8% or fix "noise" (top complaint in
+   its own reviews, 9 of 40 recent ones).
 2. ...
 3. ...
 (n = 20 comps per listing; 2 of your own units nearby were left out of the comparison.)
