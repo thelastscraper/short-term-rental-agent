@@ -54,9 +54,22 @@ Every platform needs the same two things:
      custom connector.
 2. **Turn on code execution:** Settings → Capabilities.
 3. **Upload the skill:** download [`dist/str-agent.zip`](dist/str-agent.zip), then go to Customize → Skills →
-   Upload a skill.
+   Upload a skill. Skills are uploaded from claude.ai on the web or from Claude Desktop; the iPhone app has
+   no skill upload. On a phone, use one of the options in the next section.
 4. **Ask,** for example: *"Compare my Airbnb listings with their competition:
    https://www.airbnb.com/users/show/&lt;your profile id&gt;"*.
+
+### Claude on iPhone or Android, or without installing the skill
+
+The skill is a way to load two files; a Claude chat can follow them directly. First connect Apify and turn
+on code execution once, as in steps 1 and 2 above (on the web). In the phone app, check that Apify is on in
+the chat's tools menu; if it isn't there, use claude.ai in the phone's browser. Then pick one option:
+
+| Option | How | Best for |
+|---|---|---|
+| **Attach the files** | In a new chat with Apify turned on, attach [`str-agent/SKILL.md`](str-agent/SKILL.md) and [`str-agent/SPEC.md`](str-agent/SPEC.md) and write: *"Follow SKILL.md and SPEC.md as your instructions."* Then ask your question. | Trying it right now, on any device |
+| **A Claude Project** | On claude.ai (web), create a Project: paste `SKILL.md` into its instructions and add `SPEC.md` as a project file. Open that Project from the phone app and chat as usual. | Everyday use from the phone |
+| **Read from GitHub** | Ask: *"Read and follow https://raw.githubusercontent.com/thelastscraper/short-term-rental-agent/main/str-agent/SKILL.md and https://raw.githubusercontent.com/thelastscraper/short-term-rental-agent/main/str-agent/SPEC.md"*. This works only if your Claude can open web links. | No files at hand |
 
 ### Claude Code
 

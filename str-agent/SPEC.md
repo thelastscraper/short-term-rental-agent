@@ -88,6 +88,14 @@ history and must never pretend to.
      The connector then works in claude.ai and Claude Desktop with the same Claude account. Claude's Free
      plan allows one custom connector. The skill also needs code execution on (Settings → Capabilities). Docs:
      https://docs.apify.com/platform/integrations/mcp
+
+     Skills are uploaded from claude.ai on the web or Claude Desktop; the iPhone app has no skill upload.
+     On a phone, or without the skill, the user can do either of these:
+     - attach `SKILL.md` and `SPEC.md` to a chat and ask Claude to follow them;
+     - use a Claude Project, created on the web, with `SKILL.md` as its instructions and `SPEC.md` as a
+       project file.
+
+     The Apify connector and code execution are still needed.
    - **Claude Code:** `claude mcp add apify "https://mcp.apify.com" -t http`. The sign-in page opens on
      first use.
    - **ChatGPT:**
