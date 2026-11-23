@@ -263,7 +263,7 @@ Silver, Business = Gold, which pay less). To quote the user's own tier, call `fe
 |---|---|
 | Identity | `listing_id`, `url`, `title`, `property_type`, `room_type`, `lat`, `lng`, `distance_km`, `is_hotel` |
 | Size | `guests`, `bedrooms`, `beds`, `bathrooms` |
-| Price for the dates | `price_per_night_before_taxes` (fees included, before taxes: **compare listings on this one**), `price_per_night` (includes taxes when Airbnb itemizes them), `nights`, `nightly_rate`, `total` (before taxes), `taxes`, `discounts_total`, `discount_labels`, `fees_included_in_rate`, `is_available`, `unavailable_reason` |
+| Price for the dates | `price_per_night_before_taxes` (fees included, before taxes: **compare listings on this one**), `price_per_night` (includes taxes when Airbnb itemizes them), `nights`, `nightly_rate`, `total` (before taxes), `taxes`, `discounts_total`, `discount_labels`, `fees_included_in_rate`, `is_available`, `unavailable_reason`, `unavailable_message` |
 | Quality | `rating`, `review_count`, `rating_cleanliness`, `rating_accuracy`, `rating_checkin`, `rating_communication`, `rating_location`, `rating_value`, `rating_5_star_pct`, `rating_3_or_less_pct`, `review_tags`, `reviews_last_12m`, `last_review_date`, `guest_favorite`, `guest_favorite_tier`, `superhost` |
 | Host | `host_id`, `host_listings_total`, `host_years`, `host_rating`, `host_response_rate`, `host_response_time` |
 | Rules | `cancellation_policy`, `min_nights`, `instant_book` (empty when there is no price for the dates) |
@@ -662,10 +662,64 @@ Score each candidate that passed every hard filter from 0 to 1. Weights:
 
 **Price KPIs use only comps with `price_per_night_before_taxes` for the dates, and the bot states that
 n.**
-- With fewer than 8 priced comps, get prices for nearby weeks with R4 `dateWindows`. Run the **same
-  windows on the host's listing and on the comps**, and compare week by week.
+- With fewer than 8 priced comps, follow "When few comps have a price" below.
 - A week with fewer than 5 priced comps gets no price percentile and no price recommendation. Show the
   prices you have, named and linked (section 10), and use the demand rule in section 10 instead.
+
+### When few comps have a price: widen the picture
+
+This is common in busy weeks: most comps are booked or blocked, so few have a price. In test runs, 40-56% of
+comps had no price for the dates (section 5). The comp set is still valid. Only the price
+comparison for those dates is thin.
+
+**1. Say it first, in this order, before any other finding:**
+- **The count:** *"Only 3 of your 20 comps have a price for 11-15 Mar: 15 are booked or blocked on those
+  dates."* Count as booked or blocked only `unavailable_reason` "DATE" with `unavailable_message` "Those
+  dates are not available". Report the other unavailable ones apart, e.g. *"2 more don't take this
+  check-in day or stay length."* (DATE with "Minimum stay …" or "Maximum stay …", and OTHER).
+- **The demand signal** (section 10's demand rule), when it applies: at least 70% booked or blocked,
+  at least 5 comps, and the host's listing still free.
+- **The offer to widen the comparison,** with its cost, as a question (step 2). Run it only after a yes.
+
+**2. The widening scan** (R4 `dateWindows`, on the host's listing and its comps in one run):
+- **Same stay length and same check-in weekday** as the user's dates, starting with the nearest weeks:
+  `[{"start": "<the user's check-in + 7 days>", "nights": <the user's nights>, "count": 8,
+  "stepDays": 7}]`. Prices depend on both, so changing them breaks the comparison.
+- **Cost:** about $0.11 for the host plus 20 comps over 8 weeks on the Free plan, from 2026-12-06 (about
+  $0.03 before then). With 12 weeks, about $0.15.
+- **Compare only on the weeks where the host's listing is free and at least 5 comps have a price.**
+  Compare within each week only, never across weeks; show the other weeks with their counts.
+- **Skip holiday weeks** (Christmas, New Year, local events) unless the user asked about them. Their
+  premiums distort a normal-week comparison; report them apart.
+
+**3. If the scan still leaves fewer than 5 comparable weeks, widen in this order. Ask before each paid
+step:**
+1. **Weekends and midweek apart:** two sets of windows in one `dateWindows` (section 16, the weekend
+   question).
+2. **Shorter stays that comps accept:** use the comps' median `min_nights` (rows where it is filled) as
+   the stay length. A stay outside a comp's limits comes back as "DATE" with "Minimum stay is N nights"
+   (or "Maximum stay …"): a rule, not a booking.
+3. **More comps:** if R has not been doubled yet, double it once (section 7, "Keep the 20 highest
+   scores"). Never relax a hard filter (section 7) to get more
+   prices.
+4. **The user's own flexibility:** ask which other dates they care about, and run explicit stays
+   (`{"checkIn": "…", "checkOut": "…"}`).
+
+**4. What needs no price, and is always shown:** occupancy range, ratings and review themes, amenity
+gaps, photos, friction and badges. A thin price picture never hides the rest of the comparison.
+
+**5. Show the result per week:**
+
+```
+| Week (Thu-Mon) | Your price | Comps with a price (n) | Your percentile | Comps booked or blocked |
+|---|---|---|---|---|
+| 18-22 Mar | $140 | 9 | 60th | 11 of 20 |
+| 25-29 Mar | no price | 12 | — | 8 of 20 |
+```
+
+Leave the percentile empty when n is under 5, and say "no price (booked or blocked)" when the host's
+listing has no price.
+The numbers above are illustrative.
 
 **Comps that are gone are dropped.** A comp Airbnb no longer has (no row; its reason in
 `OUTPUT.tasks[].failed_listings` starts with "does not exist", and `summary` says "no longer on Airbnb")
@@ -691,7 +745,7 @@ dates. Never treat an empty price as 0.
 | Review velocity | `reviews_last_12m` | Real demand signal |
 | Rating, sub-ratings and the low-star share | `rating`, `rating_*`, `rating_3_or_less_pct` | Fix quality issues |
 | Complaint themes per 100 reviews | The **host's own** reviews and `review_tags`, next to the comps' | What to fix first (only issues in the host's own reviews) |
-| Comps booked for the dates | Share of comps with `unavailable_reason` "DATE" (booked or blocked on those dates), e.g. "15 of 20". Other reasons (a check-in day or minimum-stay rule) are not demand | Demand for those dates |
+| Comps booked for the dates | Share of comps booked or blocked on those dates: `unavailable_reason` "DATE" with `unavailable_message` "Those dates are not available", e.g. "15 of 20". "DATE" with "Minimum stay …"/"Maximum stay …", and "OTHER" (a check-in day rule), are not demand | Demand for those dates |
 | Amenity gap | `key_amenities`, `has_*`, `amenities_count` | What to add (with care: association, not cause) |
 | Photo count | `photo_count`, `photos_complete` | Listing quality |
 | Friction | `min_nights`, `instant_book` (known values only), `cancellation_policy`, `host_response_time` | Conversion |
@@ -820,7 +874,8 @@ above the comps' 75th percentile; "at the bottom", at or below their 25th. Perce
 the comp set's.
 
 - **No price recommendation from fewer than 5 priced comps**, except the demand rule below.
-- **At least 70% of the comps are booked or blocked for the dates (`unavailable_reason` "DATE"), the comp set
+- **At least 70% of the comps are booked or blocked for the dates (`unavailable_reason` "DATE" with "Those
+  dates are not available", as in section 7's KPI), the comp set
   has at least 5 listings (section 11, rule 10), and the host's listing is still free:**
   "demand is high for these dates: hold your price or test a small increase". Give the share with its n
   (e.g. 15 of 20). It is a signal, not proof: "booked or blocked" (section 11, rule 1).
@@ -1000,7 +1055,7 @@ columns in this spec.
 | Question | Flow | Key columns or outputs | Caveat to state | Cost (Free plan) |
 |---|---|---|---|---|
 | "How do my listings compare with my real competition, and what should I change first?" | Section 7 | Portfolio view and scorecards (section 10): price percentile, occupancy range, rating and sub-ratings, amenity gaps, top 3 actions | n comps per listing; how many of the host's own units were left out; occupancy is a range ("booked or blocked"); prices are asking prices | About $1.22 for 3 listings; Express $0.83 |
-| "Are my competitors already booked for 28 Dec-2 Jan? Should I raise my price?" | Section 7, steps 1-4 (Express), with those dates; the demand rule (section 10) | Share of comps with `unavailable_reason` "DATE" (e.g. "15 of 20"); price percentile on `price_per_night_before_taxes` | "Booked or blocked", and "at least" (section 11, rule 13); the demand rule needs 5+ comps, 70%+ of them booked and the host's listing still free; no price percentile from fewer than 5 priced comps | About $0.28 per listing |
+| "Are my competitors already booked for 28 Dec-2 Jan? Should I raise my price?" | Section 7, steps 1-4 (Express), with those dates; the demand rule (section 10) | Share booked or blocked (section 7, "Comps booked for the dates"), e.g. "15 of 20"; price percentile on `price_per_night_before_taxes` | "Booked or blocked", and "at least" (section 11, rule 13); the demand rule needs 5+ comps, 70%+ of them booked and the host's listing still free; no price percentile from fewer than 5 priced comps | About $0.28 per listing |
 | "Which nights in the next few months are hot near me, and is my price high enough on them?" | Section 8, "Hot dates" (R7 with `"calendarDays": true` on 30+ comps), then R4 windows on those nights (`dateWindows` also takes explicit stays: `{"checkIn": "…", "checkOut": "…"}`) | Hot dates (20+ points above the median of the 14 days before and after); the host's price percentile on them | A share of comps booked or blocked, not a count of bookings; the next 15 days are left out; future percentiles lean high: say how many comps had no quote | After section 7: about $0.17, plus about $0.11 per listing |
 | "Do I have gaps my minimum stay can't sell? What minimum do my comps use midweek?" | Section 8, "Orphan nights and minimum stay" | Free gaps shorter than `min_nights` in the host's daily rows; the comps' `min_nights` by weekday from their daily rows (R7) | Gaps sit between booked-or-blocked nights; public calendars can't tell which | $0 after section 7 (step 1 has the host's daily rows); the comps' daily rows: about $0.11 for 20. The host's calendar alone (R7): $0.0055 per listing |
 | "What do my guests complain about most, and do guests say the same about my competitors?" | R5 on the host's listings; section 7, step 5, for the comps | Complaint themes per 100 reviews, `review_tags`, `rating_3_or_less_pct`, the host vs. the comps | Fixes come only from the host's own reviews; the comps' themes are market context; give the number of reviews read | $0.01 per listing (20 reviews); the comps' reviews: about $0.10 per listing |
@@ -1054,7 +1109,7 @@ columns in this spec.
 | "What occupancy and asking rates are entire homes running at for the next 90 days?" | R11 (unit filters optional) | Occupancy range, `est_adr` median and quartiles, n | A range ("booked or blocked"); asking rate; the next 90 days only; a sample of up to 200, not a census | Up to $0.70 |
 | "What share of listings is run by hosts with 10 or more listings?" | `host_listings_total` on the R11 rows | Share of sampled listings per host-size band, n | The host's listings anywhere on Airbnb, not only in the area; a sample; no host names, and nothing inferred about individuals | $0 after R11 |
 | "What share of listings display a permit or registration number?" | Section 8, "Permit signals", on the R11 rows | Share with `license_number`, n | Display only: not proof of legality or illegality; no legal advice | $0 after R11 |
-| "What share of entire homes is already booked for <event dates>?" | R11 with those dates as `checkIn` and `checkOut` | Share with `unavailable_reason` "DATE", n; optionally "Hot dates" (section 8) for the weeks around them | "Booked or blocked" and "at least"; listings closed by a minimum-stay or check-in rule are not demand | Up to $0.70; hot dates on 30 of the sampled listings: about $0.17 more |
+| "What share of entire homes is already booked for <event dates>?" | R11 with those dates as `checkIn` and `checkOut` | Share booked or blocked (section 7, "Comps booked for the dates"), n; optionally "Hot dates" (section 8) for the weeks around them | "Booked or blocked" and "at least"; listings closed by a minimum-stay or check-in rule are not demand | Up to $0.70; hot dates on 30 of the sampled listings: about $0.17 more |
 | "How do Airbnb prices compare with hotel prices in the city for the same week?" | R2 | `COMPARISON` medians per source and segment (bedrooms, star class) | Before-tax prices for those dates; ratings on different scales; a 2-bedroom is not two hotel rooms | Up to $0.15; `COMPARISON` is free |
 | "What share of the area's vacation rentals are also sold on Vrbo, Booking.com or Expedia?" | R6 | Share per site from `providers`, n | Rentals Google lists, not all of Airbnb; listed is not booked | Up to $0.05 for 50 rentals, plus $0.001 per extra rental (`maxItemsPerSource`) |
 | "Which booking sites dominate hotel distribution here, and how often is a hotel's own site the cheapest?" | R2 with `"sources": ["hotels"]`, `"includeOffers": true`, `"maxItemsPerSource": 20`, `"maxOfferProperties": 20` and no `outputFormat` | From the `offers` rows: share of hotels with each `provider` on their list; share of hotels whose cheapest site (lowest `price_per_night`) is their official one (`is_official_site`) | Google's price list for those dates and guests, with n hotels; presence on a list, not a share of bookings | About $0.10 |

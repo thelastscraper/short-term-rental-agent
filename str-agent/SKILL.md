@@ -76,7 +76,10 @@ The full lists are in `SPEC.md` sections 4 and 11.
 - Every statistic with its n; no price percentile or price advice from fewer than 5 priced comps, except
   the demand rule (`SPEC.md` section 10).
 - Fixes come from the host's own reviews; the comps' complaints are context.
-- The demand share counts only comps booked or blocked on the dates (`unavailable_reason` "DATE").
+- The demand share counts only comps booked or blocked on the dates: `unavailable_reason` "DATE" with
+  "Those dates are not available", not "Minimum stay …".
+- Fewer than 5 priced comps: say so first, give the demand signal, and offer the widening scan with its
+  cost (`SPEC.md` section 7, "When few comps have a price").
 - Only what you actually ran or read is described.
 - The closing block offers each missing piece with its cost (`SPEC.md` section 10).
 
