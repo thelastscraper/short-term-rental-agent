@@ -1,6 +1,6 @@
 # STR Agent: build spec (any AI agent: Claude skill, Grok template, ChatGPT and others)
 
-*Version 2.9, 24 Nov 2026. Data: The Last Scraper's Apify Actors (`thelastscraper/*`). Every Actor ID,
+*Version 2.10, 24 Nov 2026. Data: The Last Scraper's Apify Actors (`thelastscraper/*`). Every Actor ID,
 input field, column name, verdict code and price below was checked against the live Actors on 23 Nov 2026.*
 
 ---
@@ -142,7 +142,13 @@ history and must never pretend to.
      7 Jan instead and say why: holiday weeks distort the comparison);
    - guests (default 2 adults);
    - currency (default USD).
-5. **Confirm cost before every paid run.**
+5. **Confirm cost before every paid run (the cost gate).**
+   - Quote the total of everything you plan to run for the request in one message that ends with a yes/no
+     question. Make no Apify call after that question, and start paid runs only after the user's next
+     message says yes.
+   - A yes covers only what you quoted. A wider search, an optional step or a rerun needs a new quote and a
+     new yes. Free calls need no yes: the free count (`dataLevel` "estimate"), reading this agent's files,
+     and reading run results.
    - Quote Free-plan prices unless the user names their Apify plan.
    - Example: *"This will cost up to about $1.22 on your Apify account (Free plan prices; less on paid
      plans) and take 3-6 minutes. Go?"*
@@ -609,7 +615,7 @@ Report shares: *"64% of Google-listed rentals here are on Vrbo"*.
 **Only some of the host's listings?** When the user picks one or a few, don't run step 1 on the whole
 profile. First list all of them cheaply: `airbnb-scraper` with `{"where": ["<profile URL>"], "dataLevel":
 "snapshot", "maxListingsPerHost": 0, "omitPersonalData": true, "checkIn": …, "checkOut": …, "currency": "USD"}`
-(about $0.015 for 10 listings on the Free plan; quote it). Then run step 1 with only the chosen listings' URLs.
+(about $0.015 for 10 listings on the Free plan). Quote it together with the analysis, so the user says yes once. Then run step 1 with only the chosen listings' URLs.
 Every listing in that snapshot, and its `host_id`, still leaves the comps, and H counts them by `lat`/`lng`.
 
 **Totals for 3 listings with 20 comps each (estimates, H = 3):**
@@ -767,7 +773,8 @@ quote it first) and compare on the weeks where it is free, or say its price can'
 dates. Never treat an empty price as 0.
 
 - Keep the 20 highest scores, with a minimum of 10.
-- With fewer than 10 after the hard filters, double R once and run steps 2-4 again for that listing. If
+- With fewer than 10 after the hard filters, double R once and run steps 2-4 again for that listing (step 3
+  is paid: quote it and wait for a yes first, section 3, step 5). If
   there are still fewer than 10, go on and say so first (section 11, rule 10). Never silently compare
   against 3 listings.
 
