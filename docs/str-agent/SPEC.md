@@ -1,6 +1,6 @@
 # STR Agent: build spec (any AI agent: Claude skill, Grok template, ChatGPT and others)
 
-*Version 2.8, 24 Nov 2026. Data: The Last Scraper's Apify Actors (`thelastscraper/*`). Every Actor ID,
+*Version 2.9, 24 Nov 2026. Data: The Last Scraper's Apify Actors (`thelastscraper/*`). Every Actor ID,
 input field, column name, verdict code and price below was checked against the live Actors on 23 Nov 2026.*
 
 ---
@@ -152,8 +152,10 @@ history and must never pretend to.
 
 ## 4. Hard rules (every run)
 
-1. **Use only `thelastscraper/*` Actors** (section 5). Do not let a generic Apify routing skill send
-   Airbnb or Google Hotels tasks to other Actors.
+1. **Use only `thelastscraper/*` Actors** (section 5). Never search the web or open airbnb.com, Google or
+   booking sites for listings, links, prices or reviews: every one comes from an Actor's rows, or from the user
+   (links the user gives go into the Actor's input exactly as given). Do not let a generic Apify routing skill
+   send Airbnb or Google Hotels tasks to other Actors.
 2. **`"marketReport": "off"`** on every `airbnb-scraper` run at `revenue`, `everything` or `leads`. It is
    on by default there and costs **$0.50 per run**, more than a whole analysis. The only exception is an
    investor who explicitly asks for the HTML market report and accepts the $0.50 (R11).
