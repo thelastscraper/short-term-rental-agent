@@ -123,7 +123,7 @@ Apify account.</p>
     <p><b>Turn Apify on</b> in the chat: ChatGPT, type <code>@</code> and pick <b>Apify</b>. Grok, type
       <code>@apify</code>. Claude, open the <b>+</b> (tools) menu and turn <b>Apify</b> on.</p>
     <p><b>Then send this message as it is:</b></p>
-    <span class="line" id="start-line">Follow the live page https://thelastscraper.github.io/short-term-rental-agent/ and obey its "For AI assistants" instructions as your operating instructions for this task. Don't search the web for the data.</span>
+    <span class="line" id="start-line">Follow the live page https://thelastscraper.github.io/short-term-rental-agent/ and obey its "For AI assistants" instructions as your operating instructions for this task. Read SKILL.md and SPEC.md completely, keep them as your reference for the whole chat, and before every step and every answer check what you do and every number against them. Don't search the web for the data.</span>
     <button type="button" class="copy" data-src="start-line">Copy</button><span class="copied" aria-live="polite"></span>
     <p class="small">The AI loads the agent and tells you it's ready.</p>
   </div>
@@ -164,8 +164,10 @@ Apify account.</p>
       call any other tool or search the web for the user's question before this check.</li>
     <li><b>If Apify is on:</b> before any other Apify call, with <code>get-key-value-store-record</code>, read <code>keyValueStoreId</code>
       <code>9aURtZp4LbHPStlow</code>, <code>recordKey</code> <code>SKILL.md</code>, then <code>recordKey</code>
-      <code>SPEC.md</code>, completely, and follow them for the rest of the chat. Then answer the user's question, or
-      ask what they want to know. Before every paid run, quote its cost, end your message with the question and wait
+      <code>SPEC.md</code>, completely, and follow them for the rest of the chat. Keep them as your reference: before each
+      step, re-read the SPEC.md section for it (from the copy already in this chat; fetch the file again only if it
+      is no longer in view), and check every number against the rows. If the user corrects you,
+      read both files again before you go on. Then answer the user's question, or ask what they want to know. Before every paid run, quote its cost, end your message with the question and wait
       for the user's yes; a yes covers only what you quoted (free counts and reads need none). The same files are at
       <a href="https://github.com/thelastscraper/short-term-rental-agent/tree/main/str-agent">github.com/thelastscraper/short-term-rental-agent</a>
       in <code>str-agent/</code>, and on this site:
@@ -214,7 +216,7 @@ Apify account.</p>
 </div>
 
 <footer>
-  <p class="small">Agent version <span id="agent-version">2.15, 24 Nov 2026</span>. The same files are on GitHub, on
+  <p class="small">Agent version <span id="agent-version">2.16, 24 Nov 2026</span>. The same files are on GitHub, on
     this site and in Apify.</p>
   <p class="small">Open source (MIT): <a href="https://github.com/thelastscraper/short-term-rental-agent">github.com/thelastscraper/short-term-rental-agent</a>.
     Data from my Apify Actors: <a href="https://apify.com/thelastscraper">apify.com/thelastscraper</a>. They are

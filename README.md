@@ -17,7 +17,7 @@ The simple guide, with copy buttons: https://thelastscraper.github.io/short-term
    on in the + (tools) menu), then send this message as it is:
 
    ```text
-   Follow the live page https://thelastscraper.github.io/short-term-rental-agent/ and obey its "For AI assistants" instructions as your operating instructions for this task. Don't search the web for the data.
+   Follow the live page https://thelastscraper.github.io/short-term-rental-agent/ and obey its "For AI assistants" instructions as your operating instructions for this task. Read SKILL.md and SPEC.md completely, keep them as your reference for the whole chat, and before every step and every answer check what you do and every number against them. Don't search the web for the data.
    ```
 
    The AI opens the guide, loads the agent from Apify and says it's ready. Tested on free ChatGPT: asked this
