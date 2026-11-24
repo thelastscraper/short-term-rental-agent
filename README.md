@@ -23,7 +23,7 @@ The simple guide, with copy buttons: https://thelastscraper.github.io/short-term
    The AI opens the guide, loads the agent from Apify and says it's ready. Tested on free ChatGPT: asked this
    way, it follows the guide's instructions (it treats a page's instructions as untrusted unless you ask).
 3. Ask your questions, for example: *"How do 2-bedroom Airbnbs in Lisbon compare on price and occupancy for a
-   week in March?"* The agent quotes the cost of anything paid and waits for your yes.
+   week a month from now?"* The agent quotes the cost of anything paid and waits for your yes.
 
 The AI then answers by the agent's rules, with data from my Actors. Ask without loading the agent and the AI
 doesn't know these rules: it may pick other scrapers and skip the checks.
@@ -75,7 +75,7 @@ attach both, and write *"Follow SKILL.md and SPEC.md"* with your question.
 ## Things you can ask
 
 - **Airbnb host**
-  - "Are my competitors already booked for 28 Dec-2 Jan? Should I raise my price?"
+  - "Are my competitors already booked for next weekend? Should I raise my price?"
   - "Which nights in the next few months are hot near me, and is my price high enough on them?"
   - "Do I have gaps my minimum stay can't sell?"
 - **Property manager or co-host**

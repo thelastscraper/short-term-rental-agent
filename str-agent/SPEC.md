@@ -1,6 +1,6 @@
 # STR Agent: build spec (any AI agent: Claude skill, Grok template, ChatGPT and others)
 
-*Version 2.11, 24 Nov 2026. Data: The Last Scraper's Apify Actors (`thelastscraper/*`). Every Actor ID,
+*Version 2.12, 24 Nov 2026. Data: The Last Scraper's Apify Actors (`thelastscraper/*`). Every Actor ID,
 input field, column name, verdict code and price below was checked against the live Actors on 23 Nov 2026.*
 
 ---
@@ -285,7 +285,7 @@ Silver, Business = Gold, which pay less). To quote the user's own tier, call `fe
 - **Stay:** `adults`, `checkIn`, `checkOut` (YYYY-MM-DD), `currency`.
 - **Run control:** `dataLevel`, `coverage` (`all` | `available`), `maxListings` (default 200; 0 = no
   limit, never use 0), `maxListingsPerHost`.
-- **Date windows:** `dateWindows`, e.g. `[{"start": "2027-04-11", "nights": 3, "count": 8, "stepDays": 7}]`.
+- **Date windows:** `dateWindows`, e.g. `[{"start": "<YYYY-MM-DD, e.g. today + 30 days>", "nights": 3, "count": 8, "stepDays": 7}]`.
   For listings by URL or ID; up to 52 stays per listing.
 - **Output and privacy:** `outputFormat`, `marketReport`, `maxReviewPages`, `photos`
   (`full` | `preview` | `none`), `hostProfile` (`off` | `count` | `full`), `omitPersonalData`,
@@ -520,7 +520,7 @@ Report shares: *"64% of Google-listed rentals here are on Vrbo"*.
    - a table with one row per site: all-in nightly price (`price_per_night`), before-tax price
      (`price_per_night_before_taxes`), free cancellation and link;
    - the Airbnb `price_per_night_before_taxes`, compared with the sites' before-tax prices.
-   - Flag a gap above 5% between sites: *"Booking.com is 12% above your official site for 11-18 Apr;
+   - Flag a gap above 5% between sites: *"Booking.com is 12% above your official site for your dates;
      Expedia is the cheapest."*
 5. **Cost:** about $0.005 per property and date range on the Free plan ($0.0044 on Bronze): one row plus
    one list. With its Airbnb price (step 3), about $0.0065 ($0.0057 on Bronze).
@@ -633,7 +633,9 @@ section 12 before the next step.
 
 ### Comp set: hard filters
 
-A candidate that fails any hard filter never enters the comp set, whatever its score. Some hard filters
+A candidate that fails any hard filter never enters the comp set, whatever its score. Having no price for
+the dates (booked or blocked) is not a hard filter: such comps stay in the comp set and in every non-price
+KPI, and only drop out of the price KPIs. Some hard filters
 are applied in the Actor; the bot applies the rest in code after the run.
 
 - **Not the host's own:** none of the host's own listings, ever (see "Same host and duplicates" below).
@@ -710,12 +712,15 @@ n.**
 
 ### When few comps have a price: widen the picture
 
+Widen the dates, not the distance. A missing price means the comp is booked or blocked on those dates;
+the same comp usually has a price in other weeks, and a nearer comp beats a farther one.
+
 This is common in busy weeks: most comps are booked or blocked, so few have a price. In test runs, 40-56% of
 comps had no price for the dates (section 5). The comp set is still valid. Only the price
 comparison for those dates is thin.
 
 **1. Say it first, in this order, before any other finding:**
-- **The count:** *"Only 3 of your 20 comps have a price for 11-15 Mar: 15 are booked or blocked on those
+- **The count:** *"Only 3 of your 20 comps have a price for your dates: 15 are booked or blocked on those
   dates."* Count as booked or blocked only `unavailable_reason` "DATE" with `unavailable_message` "Those
   dates are not available". Report the other unavailable ones apart, e.g. *"2 more don't take this
   check-in day or stay length."* (DATE with "Minimum stay …" or "Maximum stay …", and OTHER).
@@ -741,9 +746,9 @@ step:**
 2. **Shorter stays that comps accept:** use the comps' median `min_nights` (rows where it is filled) as
    the stay length. A stay outside a comp's limits comes back as "DATE" with "Minimum stay is N nights"
    (or "Maximum stay …"): a rule, not a booking.
-3. **More comps:** if R has not been doubled yet, double it once (section 7, "Keep the 20 highest
-   scores"). Never relax a hard filter (section 7) to get more
-   prices.
+3. **More comps, only if the comp set itself is short:** if fewer than 10 comps passed the hard filters
+   (counting those with no price) and R has not been doubled yet, double it once (section 7, "Keep the 20
+   highest scores"). Never relax a hard filter or widen R just to get more prices.
 4. **The user's own flexibility:** ask which other dates they care about, and run explicit stays
    (`{"checkIn": "…", "checkOut": "…"}`).
 
@@ -753,10 +758,10 @@ gaps, photos, friction and badges. A thin price picture never hides the rest of 
 **5. Show the result per week:**
 
 ```
-| Week (Thu-Mon) | Your price | Comps with a price (n) | Your percentile | Comps booked or blocked |
+| Week (same weekdays as your stay) | Your price | Comps with a price (n) | Your percentile | Comps booked or blocked |
 |---|---|---|---|---|
-| 18-22 Mar | $140 | 9 | 60th | 11 of 20 |
-| 25-29 Mar | no price | 12 | — | 8 of 20 |
+| Your check-in + 7 days | $140 | 9 | 60th | 11 of 20 |
+| Your check-in + 14 days | no price | 12 | — | 8 of 20 |
 ```
 
 Leave the percentile empty when n is under 5, and say "no price (booked or blocked)" when the host's
@@ -773,8 +778,10 @@ quote it first) and compare on the weeks where it is free, or say its price can'
 dates. Never treat an empty price as 0.
 
 - Keep the 20 highest scores, with a minimum of 10.
-- With fewer than 10 after the hard filters, double R once and run steps 2-4 again for that listing (step 3
-  is paid: quote it and wait for a yes first, section 3, step 5). If
+- With fewer than 10 after the hard filters, counting comps with and without a price, double R once and run
+  steps 2-4 again for that listing (step 3 is paid: quote it and wait for a yes first, section 3, step 5).
+  Never widen R because few comps have a price: get prices for other weeks instead ("When few comps have a
+  price"). If
   there are still fewer than 10, go on and say so first (section 11, rule 10). Never silently compare
   against 3 listings.
 
@@ -810,15 +817,15 @@ own reviews show the same issue. Say which reviews each theme comes from.
 
 | Insight | How the bot computes it | What the user sees |
 |---|---|---|
-| **Hot dates** | Day calendars of ≥ 30 comps (R7 with `"calendarDays": true`). A hot date: the share of comps unavailable that day is at least 20 points above its median over the 14 days before and after. Ignore the next 15 days. | *"31 Dec and 14-16 Feb are 25-40 points fuller than the surrounding weeks (n=120). Your price for those nights is at the 40th percentile: raise it and set a 3-night minimum."* |
+| **Hot dates** | Day calendars of ≥ 30 comps (R7 with `"calendarDays": true`). A hot date: the share of comps unavailable that day is at least 20 points above its median over the 14 days before and after. Ignore the next 15 days. | *"One Saturday next month and three days in two months are 25-40 points fuller than the surrounding weeks (n=120). Your price for those nights is at the 40th percentile: raise it and set a 3-night minimum."* |
 | **Orphan nights and minimum stay** | The host's calendar: free gaps shorter than its `min_nights`; the comps' `min_nights` by weekday | *"5 gaps of 1-2 nights your 3-night minimum can't sell (9 nights). Comps ask 2 nights Tue-Thu."* |
-| **Future price vs. comps** | R4 windows for the host and comps: percentile per week, weekend premium, weekly and monthly discounts (`discount_labels`) | *"Top 15% in January, bottom 30% in March; your weekly discount is 5% vs. a 12% median."* |
+| **Future price vs. comps** | R4 windows for the host and comps: percentile per week, weekend premium, weekly and monthly discounts (`discount_labels`) | *"Top 15% next month, bottom 30% in three months; your weekly discount is 5% vs. a 12% median."* |
 | **Amenities that pay here** | Section 9 on the comp set | *"Comps with a hot tub ask +X% (n=…, indicative). You don't have one."* |
 | **Revenue range + investor math** | `est_adr` × the occupancy range × 30.4, from comps. Cap rate and cash-on-cash only with the **user's own** price, down payment and costs. | *"$2,100-3,400 per month (two methods, n=48). With your numbers: cap rate 4.8-7.9%."* Always a range plus a sensitivity line. |
 | **Occupancy range** | Section 11, rule 1 | *"Next 90 days: 41-58%. 58% counts every unavailable night; 41% leaves out 26 nights of long blocks and closed days."* |
 | **OTA presence** | R6 | *"64% of the area's Google-listed rentals are on Vrbo; you're only on Airbnb."* |
-| **Channel price gaps** | R8 on the user's own properties | *"For 11-18 Apr your Booking.com price is 12% above your official site; Expedia is the cheapest site. On Airbnb you're 8% below Booking.com before taxes."* |
-| **Competitors' rates per site** | R9 on competitors' links | *"3 of your 5 competitors are cheapest on their own site; the median gap to Booking.com is 9% (n=5)."* With runs on several days: *"Hotel X dropped its Booking.com rate 15% between 20 and 23 Nov."* |
+| **Channel price gaps** | R8 on the user's own properties | *"For your dates, your Booking.com price is 12% above your official site; Expedia is the cheapest site. On Airbnb you're 8% below Booking.com before taxes."* |
+| **Competitors' rates per site** | R9 on competitors' links | *"3 of your 5 competitors are cheapest on their own site; the median gap to Booking.com is 9% (n=5)."* With runs on several days: *"Hotel X dropped its Booking.com rate 15% between your last two runs."* |
 | **Permit signals** | `license_number` and `license_status` on comps | *"91% show a permit number; yours doesn't."* No legal advice. |
 
 **Only with monitoring over time** (do not show before the data exists): pickup and booking pace, lead
@@ -871,7 +878,7 @@ bedrooms and dates. It is an association, not a cause. Small groups are only ind
 ### First message after the analysis (portfolio view)
 
 ```
-Your 3 listings vs. 20 comps each (Dubai Marina, 12-17 Jan, 2 adults, USD)
+Your 3 listings vs. 20 comps each (Dubai Marina, your dates, 2 adults, USD)
 
 | Listing | Price pct | Occupancy 90d (range) | Rating vs comps | Biggest gap |
 |---|---|---|---|---|
@@ -904,7 +911,7 @@ cost, as a question. For example:
 ```
 Not in this analysis yet:
 - Hot dates (needs daily calendars of at least 30 comps, R7 with "calendarDays": true). Read them? About $0.17.
-- Your price vs. comps in other weeks (you're booked or blocked 14 Dec-1 Jan). Find weeks when you're
+- Your price vs. comps in other weeks (you're booked or blocked on these dates). Find weeks when you're
   free and most comps have a price? About $0.11.
 ```
 
@@ -1064,7 +1071,7 @@ estimate. Tell the user what is running and roughly how long it takes.
 **6. Answer with the portfolio view first** (section 10):
 
 ```
-Your 3 listings vs. 20 comps each (Dubai Marina, 12-17 Jan, 2 adults, USD)
+Your 3 listings vs. 20 comps each (Dubai Marina, your dates, 2 adults, USD)
 
 | Listing         | Price pct | Occupancy 90d (range)    | Rating vs comps | Biggest gap                 |
 |-----------------|-----------|--------------------------|-----------------|-----------------------------|
@@ -1104,7 +1111,7 @@ columns in this spec.
 | Question | Flow | Key columns or outputs | Caveat to state | Cost (Free plan) |
 |---|---|---|---|---|
 | "How do my listings compare with my real competition, and what should I change first?" | Section 7 | Portfolio view and scorecards (section 10): price percentile, occupancy range, rating and sub-ratings, amenity gaps, top 3 actions | n comps per listing; how many of the host's own units were left out; occupancy is a range ("booked or blocked"); prices are asking prices | About $1.22 for 3 listings; Express $0.83 |
-| "Are my competitors already booked for 28 Dec-2 Jan? Should I raise my price?" | Section 7, steps 1-4 (Express), with those dates; the demand rule (section 10) | Share booked or blocked (section 7, "Comps booked for the dates"), e.g. "15 of 20"; price percentile on `price_per_night_before_taxes` | "Booked or blocked", and "at least" (section 11, rule 13); the demand rule needs 5+ comps, 70%+ of them booked and the host's listing still free; no price percentile from fewer than 5 priced comps | About $0.28 per listing |
+| "Are my competitors already booked for next weekend? Should I raise my price?" | Section 7, steps 1-4 (Express), with those dates; the demand rule (section 10) | Share booked or blocked (section 7, "Comps booked for the dates"), e.g. "15 of 20"; price percentile on `price_per_night_before_taxes` | "Booked or blocked", and "at least" (section 11, rule 13); the demand rule needs 5+ comps, 70%+ of them booked and the host's listing still free; no price percentile from fewer than 5 priced comps | About $0.28 per listing |
 | "Which nights in the next few months are hot near me, and is my price high enough on them?" | Section 8, "Hot dates" (R7 with `"calendarDays": true` on 30+ comps), then R4 windows on those nights (`dateWindows` also takes explicit stays: `{"checkIn": "…", "checkOut": "…"}`) | Hot dates (20+ points above the median of the 14 days before and after); the host's price percentile on them | A share of comps booked or blocked, not a count of bookings; the next 15 days are left out; future percentiles lean high: say how many comps had no quote | After section 7: about $0.17, plus about $0.11 per listing |
 | "Do I have gaps my minimum stay can't sell? What minimum do my comps use midweek?" | Section 8, "Orphan nights and minimum stay" | Free gaps shorter than `min_nights` in the host's daily rows; the comps' `min_nights` by weekday from their daily rows (R7) | Gaps sit between booked-or-blocked nights; public calendars can't tell which | $0 after section 7 (step 1 has the host's daily rows); the comps' daily rows: about $0.11 for 20. The host's calendar alone (R7): $0.0055 per listing |
 | "What do my guests complain about most, and do guests say the same about my competitors?" | R5 on the host's listings; section 7, step 5, for the comps | Complaint themes per 100 reviews, `review_tags`, `rating_3_or_less_pct`, the host vs. the comps | Fixes come only from the host's own reviews; the comps' themes are market context; give the number of reviews read | $0.01 per listing (20 reviews); the comps' reviews: about $0.10 per listing |
@@ -1129,7 +1136,7 @@ columns in this spec.
 
 | Question | Flow | Key columns or outputs | Caveat to state | Cost (Free plan) |
 |---|---|---|---|---|
-| "What does my property cost on Booking.com, Expedia and my own site for 11-18 Apr, and how does my Airbnb price compare?" | R8 | `offers` rows: `provider`, `price_per_night`, `price_per_night_before_taxes`, `is_official_site`, `free_cancellation`, `link`; the Airbnb `price_per_night_before_taxes` | "On Google's price list for those dates": public prices, not logged-in or package prices; flag `member_price`; compare with Airbnb before taxes | $0.0065 per property and date range ($0.005 without Airbnb) |
+| "What does my property cost on Booking.com, Expedia and my own site for my dates next month, and how does my Airbnb price compare?" | R8 | `offers` rows: `provider`, `price_per_night`, `price_per_night_before_taxes`, `is_official_site`, `free_cancellation`, `link`; the Airbnb `price_per_night_before_taxes` | "On Google's price list for those dates": public prices, not logged-in or package prices; flag `member_price`; compare with Airbnb before taxes | $0.0065 per property and date range ($0.005 without Airbnb) |
 | "Am I in rate parity across all sites for each of the next 8 weekends?" | R8 once per weekend; R4 `dateWindows` for the Airbnb side | Gaps above 5% per site and weekend | As above; a site missing from Google's list for a date is not proof it doesn't sell the property | About $0.045 per property |
 | "Which sites sell my property with free cancellation, and until when?" | R8 | `free_cancellation`, `free_cancellation_until`, `price_per_night` per site | As Google shows it for those dates and guests | $0.005 per property and date range |
 | "Where are my 10 competitors cheapest, and how far below Booking.com?" | R9 (section 8, "Competitors' rates per site") | `cheapest_provider`, `is_official_site`, the median gap to Booking.com, n | One snapshot for those dates; Google's public prices | $0.05 per run |
