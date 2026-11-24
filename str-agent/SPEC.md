@@ -1,6 +1,6 @@
 # STR Agent: build spec (any AI agent: Claude skill, Grok template, ChatGPT and others)
 
-*Version 2.10, 24 Nov 2026. Data: The Last Scraper's Apify Actors (`thelastscraper/*`). Every Actor ID,
+*Version 2.11, 24 Nov 2026. Data: The Last Scraper's Apify Actors (`thelastscraper/*`). Every Actor ID,
 input field, column name, verdict code and price below was checked against the live Actors on 23 Nov 2026.*
 
 ---
@@ -148,7 +148,7 @@ history and must never pretend to.
      message says yes.
    - A yes covers only what you quoted. A wider search, an optional step or a rerun needs a new quote and a
      new yes. Free calls need no yes: the free count (`dataLevel` "estimate"), reading this agent's files,
-     and reading run results.
+     reading run results or an Actor's details, and stopping a run.
    - Quote Free-plan prices unless the user names their Apify plan.
    - Example: *"This will cost up to about $1.22 on your Apify account (Free plan prices; less on paid
      plans) and take 3-6 minutes. Go?"*
@@ -1090,8 +1090,8 @@ say. Use them to pick a flow and to show users what they can ask. Each one uses 
 columns in this spec.
 
 - **Costs** are Free-plan estimates from section 5's prices, with `price-quote` charged (from
-  2026-12-06; R4 windows are free before then). Quote and confirm them before each run (section 3,
-  step 5).
+  2026-12-06; R4 windows are free before then). Quote them with the rest of the
+  request's runs, and confirm before running (section 3, step 5).
 - **"After section 7"** (or R10, or R11) means the answer also uses rows that run returned. If it has
   not run yet, add its cost: section 7 is about $0.41 per listing (Standard) or $0.28 (Express).
 - **"Partly answerable"** rows must use the wording in their caveat.

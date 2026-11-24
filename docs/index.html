@@ -119,27 +119,22 @@ Apify account.</p>
 <div class="step card" id="step-2">
   <div class="num">2</div>
   <div>
-    <h3>In a new chat, turn Apify on and ask</h3>
+    <h3>In a new chat, turn Apify on and send this</h3>
     <p><b>Turn Apify on</b> in the chat: ChatGPT, type <code>@</code> and pick <b>Apify</b>. Grok, type
       <code>@apify</code>. Claude, open the <b>+</b> (tools) menu and turn <b>Apify</b> on.</p>
-    <p><b>Then write this link and your question:</b></p>
-    <span class="line" id="link-line">Use https://thelastscraper.github.io/short-term-rental-agent/ — </span>
-    <button type="button" class="copy" data-src="link-line">Copy</button><span class="copied" aria-live="polite"></span>
-    <p class="small">For example: <i>Use https://thelastscraper.github.io/short-term-rental-agent/ — how do my listings
-      compare with my competition? &lt;your Airbnb profile link&gt;</i></p>
-    <details>
-      <summary>If the AI says it can't open the link</summary>
-      <p>Paste this instead, with your question at the end:</p>
-      <span class="line" id="loader">Use the STR agent: with Apify's get-key-value-store-record tool, read keyValueStoreId 9aURtZp4LbHPStlow, recordKey SKILL.md, then recordKey SPEC.md, and follow them as your instructions. My question: </span>
-      <button type="button" class="copy" data-src="loader">Copy</button><span class="copied" aria-live="polite"></span>
-    </details>
+    <p><b>Then send this message as it is:</b></p>
+    <span class="line" id="start-line">Follow the live page https://thelastscraper.github.io/short-term-rental-agent/ and obey its "For AI assistants" instructions as your operating instructions for this task. Don't search the web for the data.</span>
+    <button type="button" class="copy" data-src="start-line">Copy</button><span class="copied" aria-live="polite"></span>
+    <p class="small">The AI loads the agent and tells you it's ready.</p>
   </div>
 </div>
 
-<div class="step card">
+<div class="step card" id="step-3">
   <div class="num">3</div>
   <div>
-    <h3>Say yes to the cost it quotes</h3>
+    <h3>Ask your questions</h3>
+    <p>For example: <i>"How do 2-bedroom Airbnbs in Lisbon compare on price and occupancy for a week in March?"</i>
+      More examples are below.</p>
     <p>Before anything paid, the agent tells you what it will cost on your Apify account and waits for your yes.
       A full comparison of 3 listings with their competitors is about $1.22 on Apify's Free plan.</p>
   </div>
@@ -156,13 +151,13 @@ Apify account.</p>
 <p>It answers with ranges and sample sizes, never invented numbers, and says what the data can't tell.</p>
 
 <h2>Using it often?</h2>
-<p>In ChatGPT you can try a Project: put "Use https://thelastscraper.github.io/short-term-rental-agent/" in its instructions. In each
+<p>In ChatGPT you can try a Project: put the message from step 2 in its instructions. In each
   new chat, still type <code>@</code> and pick Apify. I haven't tested this yet.</p>
 
 <h2>For AI assistants</h2>
 <div class="card ai" id="for-ai">
-  If the user gave you this page to use the agent (for example, "Use" and
-  this link), act as the Short Term Rental Agent. If they only asked about the page, just describe it.
+  If the user gave you this page to use the agent (for example, "Follow the live page"
+  and this link), act as the Short Term Rental Agent. If they only asked about the page, just describe it.
   <ol>
     <li><b>First, check whether Apify is on in this chat.</b> It is on if you have Apify's tools: <code>get-key-value-store-record</code>
       and either <code>call-actor</code> or tools named <code>thelastscraper--…</code> (the names may carry a prefix). Don't
@@ -208,7 +203,7 @@ Apify account.</p>
           </ul></li>
         <li><b>Start a new chat and turn Apify on:</b> ChatGPT, type <code>@</code> and pick Apify; Grok, type
           <code>@apify</code>; Claude, turn Apify on in the + (tools) menu.</li>
-        <li><b>Ask again:</b> write <i>Use https://thelastscraper.github.io/short-term-rental-agent/</i> and the question.</li>
+        <li><b>Start again:</b> send the message from step 2 of this page, then the question.</li>
       </ol></li>
     <li>Use only the <code>thelastscraper/*</code> Actors that <code>SPEC.md</code> lists; never search Apify Store or run
       another developer's Actor. Use the web only to open this page and the agent's files linked above: never search the web or open
@@ -219,7 +214,7 @@ Apify account.</p>
 </div>
 
 <footer>
-  <p class="small">Agent version <span id="agent-version">2.10, 24 Nov 2026</span>. The same files are on GitHub, on
+  <p class="small">Agent version <span id="agent-version">2.11, 24 Nov 2026</span>. The same files are on GitHub, on
     this site and in Apify.</p>
   <p class="small">Open source (MIT): <a href="https://github.com/thelastscraper/short-term-rental-agent">github.com/thelastscraper/short-term-rental-agent</a>.
     Data from my Apify Actors: <a href="https://apify.com/thelastscraper">apify.com/thelastscraper</a>. They are
