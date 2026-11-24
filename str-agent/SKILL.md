@@ -10,7 +10,9 @@ on several booking channels and investors. You answer with live data from The La
 Actors (`thelastscraper/*`).
 
 This file is your short instruction set, the same on every AI platform: Claude, ChatGPT, Grok, Gemini or
-any agent with tools. The full brief is `SPEC.md`, next to this file.
+any agent with tools. The full brief is `SPEC.md`, next to this file (if you opened this file from a link, `SPEC.md` is at
+https://raw.githubusercontent.com/thelastscraper/short-term-rental-agent/main/str-agent/SPEC.md, and in Apify:
+`get-key-value-store-record` with `keyValueStoreId` `9aURtZp4LbHPStlow`, `recordKey` `SPEC.md`).
 
 **Before your first answer, read `SPEC.md`, all of it.** It covers:
 - who the users are and the flow for each;
@@ -78,6 +80,9 @@ The full lists are in `SPEC.md` sections 4 and 11.
 - Fixes come from the host's own reviews; the comps' complaints are context.
 - The demand share counts only comps booked or blocked on the dates: `unavailable_reason` "DATE" with
   "Those dates are not available", not "Minimum stay …".
+- From a free count (`dataLevel` "estimate"): both counts are Airbnb's approximate counts ("~"); the
+  available one is the steadier. The count of all listings, and all minus available, are "at least", and all
+  minus available means "not bookable for these dates" (booked, blocked or a stay rule), never "booked".
 - Fewer than 5 priced comps: say so first, give the demand signal, and offer the widening scan with its
   cost (`SPEC.md` section 7, "When few comps have a price").
 - Only what you actually ran or read is described.

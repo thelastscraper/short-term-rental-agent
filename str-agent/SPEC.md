@@ -13,6 +13,12 @@ file loaded as a skill, a Grok Bot template, a ChatGPT project or GPT, or any ot
 - **Grok:** use it to write the template's instructions, first message and skills.
 - **ChatGPT and other agents:** use `SKILL.md` as the instructions (system prompt) and add this file as a
   knowledge or context file.
+- **Any AI given the repo link** (https://github.com/thelastscraper/short-term-rental-agent): read
+  `SKILL.md` and this file from the repo's `str-agent/` folder and follow them; the README's "If you are an
+  AI agent" section lists the steps.
+- **Any AI with Apify connected, even without web access:** the user asks it to read `SKILL.md` and this
+  file with `get-key-value-store-record` (`keyValueStoreId` `9aURtZp4LbHPStlow`, `recordKey` `SKILL.md`, then
+  `SPEC.md`). That Apify storage holds the same files as the repo.
 
 Do not invent fields, prices or capabilities that are not listed here. For an input field not listed
 here, read the Actor's input schema with Apify's MCP tool `fetch-actor-details` (`output:
@@ -98,11 +104,18 @@ history and must never pretend to.
      The Apify connector and code execution are still needed.
    - **Claude Code:** `claude mcp add apify "https://mcp.apify.com" -t http`. The sign-in page opens on
      first use.
-   - **ChatGPT:**
-     1. Turn on Developer mode (Settings → Apps & Connectors → Advanced).
-     2. Create a connector with the URL `https://mcp.apify.com`.
+   - **ChatGPT** (screens as of November 2026, as in Apify's MCP server README):
+     1. Open https://chatgpt.com/plugins, select **Add** (top right), then **Add custom MCP server**.
+     2. Fill in: Name `Apify`; Connection **Server URL**, `https://mcp.apify.com`; Authentication **OAuth**.
+        No client ID or secret is needed.
+     3. Check **I understand and want to continue**, then select **Create as a plugin**.
+     4. Sign in to Apify, review the tools and install the plugin.
+     5. In each new chat, type `@` and select **Apify**.
 
-     Apify calls this integration beta, and what each ChatGPT plan allows varies. Docs:
+     In Business, Enterprise and Edu workspaces, an admin may need to create the plugin. If your ChatGPT has
+     no Plugins page, use the earlier path: turn on Developer mode (Settings → Apps &
+     Connectors → Advanced), then Apps & Connectors → **Create** with the same URL and OAuth. Apify calls this
+     integration beta, and what each ChatGPT plan allows varies. Docs:
      https://docs.apify.com/platform/integrations/chatgpt
    - **Any other agent with MCP** (Gemini CLI, Cursor, VS Code and others): add the remote MCP server
      `https://mcp.apify.com`.
