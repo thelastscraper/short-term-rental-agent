@@ -1,6 +1,6 @@
 # STR Agent: build spec (any AI agent: Claude skill, Grok template, ChatGPT and others)
 
-*Version 2.13, 24 Nov 2026. Data: The Last Scraper's Apify Actors (`thelastscraper/*`). Every Actor ID,
+*Version 2.14, 24 Nov 2026. Data: The Last Scraper's Apify Actors (`thelastscraper/*`). Every Actor ID,
 input field, column name, verdict code and price below was checked against the live Actors on 23 Nov 2026.*
 
 ---
@@ -560,9 +560,9 @@ Report shares: *"64% of Google-listed rentals here are on Vrbo"*.
    for more.
 
 **Cost (estimate, Free plan):**
-- step 1: about $0.0025 per listing (`listing-details` plus `calendar`);
-- step 3: about $0.11-0.15 per listing (30 + H listings at $0.0035 each);
-- step 5: about $0.41 per listing analyzed (section 7, Standard, ÷ 3).
+- step 1: about $0.0025 per host listing (`listing-details` plus `calendar`);
+- step 3: about $0.11-0.15 per host listing (its 30 + H candidate comps at $0.0035 each);
+- step 5: about $0.41 per host listing analyzed, its comps included (section 7, Standard, ÷ 3).
 - 50 listings, steps 1-4: about $5.60-7.60. That is above Apify's $5 free monthly usage, so say so and
   mention Apify's paid plans.
 
@@ -625,6 +625,9 @@ Every listing in that snapshot, and its `host_id`, still leaves the comps, and H
 | Standard (steps 1-6) | about $1.22 | about $0.96 | 3-6 min |
 | With the price curve and channel prices (steps 1-8) | about $1.55 | about $1.23 | — |
 | Express (steps 1-4 only: no comp reviews, no hotels) | about $0.83 | about $0.64 | — |
+
+**Per host listing analyzed:** about $0.41 (Standard) or $0.28 (Express) on the Free plan, with its ~20 comps
+already included. These costs are per host listing, never per comp: do not multiply them by the number of comps.
 
 **Order:** 1 → 2 → 3 → 4 → 5, 6 and 8 → 7 (only if the user wants it). Run the listings' steps 2-3, and
 steps 5, 6 and 8, in parallel. If Apify rejects a run for the account's memory limit, start it when
@@ -777,7 +780,7 @@ The numbers above are illustrative.
 leaves the set. Say how many were dropped.
 
 **The host's own listing needs a price too.** When its `price_per_night_before_taxes` is empty (booked on
-the dates), run step 7's `dateWindows` on it and its comps (about +$0.11 per listing on the Free plan:
+the dates), run step 7's `dateWindows` on it and its comps (about +$0.11 per host listing, its comps included, on the Free plan:
 quote it first) and compare on the weeks where it is free, or say its price can't be compared for these
 dates. Never treat an empty price as 0.
 
@@ -1104,7 +1107,7 @@ columns in this spec.
   2026-12-06; R4 windows are free before then). Quote them with the rest of the
   request's runs, and confirm before running (section 3, step 5).
 - **"After section 7"** (or R10, or R11) means the answer also uses rows that run returned. If it has
-  not run yet, add its cost: section 7 is about $0.41 per listing (Standard) or $0.28 (Express).
+  not run yet, add its cost: section 7 is about $0.41 (Standard) or $0.28 (Express) per host listing analyzed, its ~20 comps included.
 - **"Partly answerable"** rows must use the wording in their caveat.
 - Sections 4 and 11 apply to every answer. The caveat column lists what each answer must state.
 - The market analyst (journalist, consultant, city planner) is not in section 1's table. Start them
@@ -1115,19 +1118,19 @@ columns in this spec.
 | Question | Flow | Key columns or outputs | Caveat to state | Cost (Free plan) |
 |---|---|---|---|---|
 | "How do my listings compare with my real competition, and what should I change first?" | Section 7 | Portfolio view and scorecards (section 10): price percentile, occupancy range, rating and sub-ratings, amenity gaps, top 3 actions | n comps per listing; how many of the host's own units were left out; occupancy is a range ("booked or blocked"); prices are asking prices | About $1.22 for 3 listings; Express $0.83 |
-| "Are my competitors already booked for next weekend? Should I raise my price?" | Section 7, steps 1-4 (Express), with those dates; the demand rule (section 10) | Share booked or blocked (section 7, "Comps booked for the dates"), e.g. "15 of 20"; price percentile on `price_per_night_before_taxes` | "Booked or blocked", and "at least" (section 11, rule 13); the demand rule needs 5+ comps, 70%+ of them booked and the host's listing still free; no price percentile from fewer than 5 priced comps | About $0.28 per listing |
-| "Which nights in the next few months are hot near me, and is my price high enough on them?" | Section 8, "Hot dates" (R7 with `"calendarDays": true` on 30+ comps), then R4 windows on those nights (`dateWindows` also takes explicit stays: `{"checkIn": "…", "checkOut": "…"}`) | Hot dates (20+ points above the median of the 14 days before and after); the host's price percentile on them | A share of comps booked or blocked, not a count of bookings; the next 15 days are left out; future percentiles lean high: say how many comps had no quote | After section 7: about $0.17, plus about $0.11 per listing |
+| "Are my competitors already booked for next weekend? Should I raise my price?" | Section 7, steps 1-4 (Express), with those dates; the demand rule (section 10) | Share booked or blocked (section 7, "Comps booked for the dates"), e.g. "15 of 20"; price percentile on `price_per_night_before_taxes` | "Booked or blocked", and "at least" (section 11, rule 13); the demand rule needs 5+ comps, 70%+ of them booked and the host's listing still free; no price percentile from fewer than 5 priced comps | About $0.28 per host listing, its comps included |
+| "Which nights in the next few months are hot near me, and is my price high enough on them?" | Section 8, "Hot dates" (R7 with `"calendarDays": true` on 30+ comps), then R4 windows on those nights (`dateWindows` also takes explicit stays: `{"checkIn": "…", "checkOut": "…"}`) | Hot dates (20+ points above the median of the 14 days before and after); the host's price percentile on them | A share of comps booked or blocked, not a count of bookings; the next 15 days are left out; future percentiles lean high: say how many comps had no quote | After section 7: about $0.17, plus about $0.11 per host listing, its comps included |
 | "Do I have gaps my minimum stay can't sell? What minimum do my comps use midweek?" | Section 8, "Orphan nights and minimum stay" | Free gaps shorter than `min_nights` in the host's daily rows; the comps' `min_nights` by weekday from their daily rows (R7) | Gaps sit between booked-or-blocked nights; public calendars can't tell which | $0 after section 7 (step 1 has the host's daily rows); the comps' daily rows: about $0.11 for 20. The host's calendar alone (R7): $0.0055 per listing |
-| "What do my guests complain about most, and do guests say the same about my competitors?" | R5 on the host's listings; section 7, step 5, for the comps | Complaint themes per 100 reviews, `review_tags`, `rating_3_or_less_pct`, the host vs. the comps | Fixes come only from the host's own reviews; the comps' themes are market context; give the number of reviews read | $0.01 per listing (20 reviews); the comps' reviews: about $0.10 per listing |
+| "What do my guests complain about most, and do guests say the same about my competitors?" | R5 on the host's listings; section 7, step 5, for the comps | Complaint themes per 100 reviews, `review_tags`, `rating_3_or_less_pct`, the host vs. the comps | Fixes come only from the host's own reviews; the comps' themes are market context; give the number of reviews read | $0.01 per listing (20 reviews); the comps' reviews: about $0.10 per host listing (20 comps × 10 reviews) |
 | "Would a hot tub let me charge more here?" | Section 9's rule on the comp set (section 8, "Amenities that pay here") | Median `price_per_night_before_taxes` with vs. without it (`key_amenities`, `has_*`), n on each side | An association, not a cause; groups under 15 are "indicative"; with fewer than 5 priced comps on a side, use section 9's measured list and say so; never "add X and earn Y" | $0 after section 7 |
-| "How does my price compare with my comps week by week over the next two months, weekends included?" | Section 8, "Future price vs. comps" (section 7, step 7, with two sets of windows in one `dateWindows`: weekends and midweek) | Percentile per week, weekend premium, `discount_labels` | Future percentiles lean high (section 11, rule 4): say how many comps had no quote each week; the same windows for the host and the comps | About $0.19 per listing after section 7 ($0.03 before 2026-12-06) |
+| "How does my price compare with my comps week by week over the next two months, weekends included?" | Section 8, "Future price vs. comps" (section 7, step 7, with two sets of windows in one `dateWindows`: weekends and midweek) | Percentile per week, weekend premium, `discount_labels` | Future percentiles lean high (section 11, rule 4): say how many comps had no quote each week; the same windows for the host and the comps | About $0.19 per host listing, its comps included, after section 7 ($0.03 before 2026-12-06) |
 | "Should I turn on Instant Book or change my cancellation policy?" | Section 7, "Friction" KPI, and the Instant Book rule (section 10) | `instant_book`, `cancellation_policy`, `min_nights`, `host_response_time`, vs. the comps | `instant_book` is known only for comps with a price for the dates: give that n; an association, not proof of more bookings | $0 after section 7 |
 
 ### 16.2 Property manager or co-host (10-500 listings)
 
 | Question | Flow | Key columns or outputs | Caveat to state | Cost (Free plan) |
 |---|---|---|---|---|
-| "Which of my 40 listings are mispriced against their comps?" | R10, steps 1-4 | Flags per listing (section 10 rules), grouped by area and type | No price flag for a listing with no price for the dates: say how many; n comps per listing; the full section 7 (step 5) only for the most flagged, after a yes | About $4.50-6.10 for 40 listings: say it can pass Apify's $5 free monthly usage. Step 5: about $0.41 per listing |
+| "Which of my 40 listings are mispriced against their comps?" | R10, steps 1-4 | Flags per listing (section 10 rules), grouped by area and type | No price flag for a listing with no price for the dates: say how many; n comps per listing; the full section 7 (step 5) only for the most flagged, after a yes | About $4.50-6.10 for 40 listings: say it can pass Apify's $5 free monthly usage. Step 5: about $0.41 per host listing, its comps included |
 | "Which units have the weakest occupancy for the next 90 days compared with their comps?" | R10, step 4: "occupancy at the bottom of the range" | Each unit's range (`est_occupancy_calendar_adjusted_90` to `est_occupancy_calendar_90`) vs. its comps' 25th percentile | Ranges, "booked or blocked"; the next 90 days only, never last year; owner blocks raise the ceiling | $0 after R10, steps 1-4 |
 | "Where are my calendars losing nights to orphan gaps, across the whole portfolio?" | Section 8, "Orphan nights", from R7 with `"calendarDays": true` on the portfolio's listing IDs | Gaps shorter than `min_nights` per unit, nights lost, units ranked | Gaps sit between booked-or-blocked nights | $0.0055 per listing (50 listings: about $0.28) |
 | "Which dates ahead are hot in each of my areas, and which units still charge a normal rate on them?" | Section 8, "Hot dates", per area group (R10, step 2), then R4 on the units there | Hot dates per area; each unit's price on them vs. its own price in the weeks around them | A booked-or-blocked share, not bookings; the next 15 days are left out; a unit booked on a hot date has no price there | About $0.17 per area (daily calendars of 30 listings from R10, step 3), plus $0.007 per unit for 12 windows ($0.0015 before 2026-12-06) |
