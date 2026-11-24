@@ -1,6 +1,6 @@
 # STR Agent: build spec (any AI agent: Claude skill, Grok template, ChatGPT and others)
 
-*Version 2.12, 24 Nov 2026. Data: The Last Scraper's Apify Actors (`thelastscraper/*`). Every Actor ID,
+*Version 2.13, 24 Nov 2026. Data: The Last Scraper's Apify Actors (`thelastscraper/*`). Every Actor ID,
 input field, column name, verdict code and price below was checked against the live Actors on 23 Nov 2026.*
 
 ---
@@ -728,7 +728,8 @@ comparison for those dates is thin.
   at least 5 comps, and the host's listing still free.
 - **The offer to widen the comparison,** with its cost, as a question (step 2). Run it only after a yes.
 
-**2. The widening scan** (R4 `dateWindows`, on the host's listing and its comps in one run):
+**2. The widening scan** (R4 `dateWindows`, in one run, on the host's listing and every comp in the comp set,
+with or without a price for the user's dates, up to 20; never only the comps that had a price):
 - **Same stay length and same check-in weekday** as the user's dates, starting with the nearest weeks:
   `[{"start": "<the user's check-in + 7 days>", "nights": <the user's nights>, "count": 8,
   "stepDays": 7}]`. Prices depend on both, so changing them breaks the comparison.
@@ -755,7 +756,10 @@ step:**
 **4. What needs no price, and is always shown:** occupancy range, ratings and review themes, amenity
 gaps, photos, friction and badges. A thin price picture never hides the rest of the comparison.
 
-**5. Show the result per week:**
+**5. Show the result per week.** Build the table from the rows, keyed by `listing_id` and `check_in` (in code
+if you can run it): each price goes in the row of its own `check_in`. Never fill a column by position, and
+check every price you show against its row's `check_in`. A week with fewer than 5 comps with a price gets no
+percentile and no suggested price, only the prices with their n.
 
 ```
 | Week (same weekdays as your stay) | Your price | Comps with a price (n) | Your percentile | Comps booked or blocked |
