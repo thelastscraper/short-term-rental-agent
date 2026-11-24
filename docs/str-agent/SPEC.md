@@ -1,6 +1,6 @@
 # STR Agent: build spec (any AI agent: Claude skill, Grok template, ChatGPT and others)
 
-*Version 2.14, 24 Nov 2026. Data: The Last Scraper's Apify Actors (`thelastscraper/*`). Every Actor ID,
+*Version 2.15, 24 Nov 2026. Data: The Last Scraper's Apify Actors (`thelastscraper/*`). Every Actor ID,
 input field, column name, verdict code and price below was checked against the live Actors on 23 Nov 2026.*
 
 ---
@@ -616,7 +616,8 @@ Report shares: *"64% of Google-listed rentals here are on Vrbo"*.
 profile. First list all of them cheaply: `airbnb-scraper` with `{"where": ["<profile URL>"], "dataLevel":
 "snapshot", "maxListingsPerHost": 0, "omitPersonalData": true, "checkIn": …, "checkOut": …, "currency": "USD"}`
 (about $0.015 for 10 listings on the Free plan). Quote it together with the analysis, so the user says yes once. Then run step 1 with only the chosen listings' URLs.
-Every listing in that snapshot, and its `host_id`, still leaves the comps, and H counts them by `lat`/`lng`.
+Every listing in that snapshot still leaves the comps, by `listing_id` (snapshot rows may have no `host_id`;
+take it from step 1's rows), and H counts them by `lat`/`lng`.
 
 **Totals for 3 listings with 20 comps each (estimates, H = 3):**
 
@@ -648,8 +649,12 @@ are applied in the Actor; the bot applies the rest in code after the run.
 - **What the listing sells is mandatory.**
   - Read the host listing's **title** and `key_amenities` for what it advertises: pool, gym, hot tub,
     security or doorman, view, parking.
-  - Comps must have each of those. A comp without one is out of the core set. It may appear in a separate
-    "without X" contrast group.
+  - Comps must have each of those that Airbnb lists as an amenity (in `key_amenities` / `has_*`: pool, gym, hot
+    tub, parking, a view such as "Sea view" / `has_sea_view`). A comp without one is out of the core set. It may appear in a separate "without X" contrast
+    group.
+  - Features that only titles show, because the comps' amenity data can't confirm them (for example 24/7
+    security or a concierge), are never hard filters: many comps have them without saying so. They add to the
+    score (key-amenity overlap, below), and the report marks which comps advertise them.
   - Match the kind:
     - shared pool ↔ shared pool;
     - private pool ↔ private pool;
@@ -674,7 +679,7 @@ Score each candidate that passed every hard filter from 0 to 1. Weights:
 | Factor | Weight | How |
 |---|---|---|
 | Distance | 0.20 | 1 up to 0.3 km; then falls linearly to 0 at R: 1 − (`distance_km` − 0.3) ÷ (R − 0.3) |
-| Key-amenity overlap | 0.20 | Jaccard (in both ÷ in either) on the market-key amenities, from `key_amenities` / `has_*`; 1 when neither has any |
+| Key-amenity overlap | 0.20 | Jaccard (in both ÷ in either) on the market-key amenities, from `key_amenities` / `has_*`, plus the title-only features the host advertises (for example 24/7 security or a concierge); 1 when neither has any |
 | Format and property type | 0.15 | Same format (loft, duplex, studio, separate bedroom) = 1, else 0 |
 | Quality tier | 0.15 | 0.5 for the same rating band (under 4.5, 4.5-4.79, 4.8 and up) + 0.5 for the same `review_count` band (under 10, 10-49, 50 and up) |
 | Guest capacity | 0.10 | Same `guests` = 1, ±1 = 0.5, ±2 = 0 |
