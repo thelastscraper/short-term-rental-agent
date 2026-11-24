@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Short Term Rental Agent</title>
+<meta name="description" content="Ask ChatGPT, Claude or Grok about Airbnb prices, competitors and occupancy, answered with live data. The agent is free and open source.">
+<style>
+  :root {
+    --bg: #ffffff; --fg: #16181d; --muted: #5b6170; --card: #f5f6f8; --line: #e3e5ea;
+    --accent: #c8553f; --accent-fg: #ffffff; --code: #eef0f3;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1017; --fg: #e8eaee; --muted: #a2a8b5; --card: #161a23; --line: #262b36;
+      --accent: #eb735b; --accent-fg: #0d1017; --code: #1d222c;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 17px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  main { max-width: 720px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 8px; }
+  h2 { font-size: 1.3rem; margin: 40px 0 12px; }
+  h3 { font-size: 1.05rem; margin: 20px 0 6px; }
+  p, li { color: var(--fg); }
+  .lead { font-size: 1.15rem; color: var(--muted); margin: 0 0 24px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; margin: 16px 0; }
+  .ai { font-size: 0.95rem; }
+  .ai strong { color: var(--accent); }
+  .step { display: flex; gap: 14px; align-items: flex-start; }
+  .num {
+    flex: 0 0 32px; height: 32px; border-radius: 50%; background: var(--accent); color: var(--accent-fg);
+    display: flex; align-items: center; justify-content: center; font-weight: 700;
+  }
+  .step > .num { flex: 0 0 32px; width: 32px; }
+  .step > div:not(.num) { flex: 1; min-width: 0; }
+  p, li, .small { overflow-wrap: anywhere; }
+  code, .line {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9rem;
+    background: var(--code); border-radius: 6px;
+  }
+  code { padding: 1px 5px; overflow-wrap: anywhere; }
+  .line { display: block; padding: 12px; white-space: pre-wrap; overflow-wrap: anywhere; margin: 10px 0; }
+  button {
+    font: inherit; font-weight: 600; border: 0; border-radius: 8px; padding: 10px 16px; cursor: pointer;
+    background: var(--accent); color: var(--accent-fg);
+  }
+  .copied { margin-left: 10px; color: var(--muted); font-size: 0.9rem; }
+  details { border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; margin: 10px 0; }
+  summary { cursor: pointer; font-weight: 600; }
+  ol, ul { padding-left: 22px; }
+  a { color: var(--accent); }
+  .small { font-size: 0.85rem; color: var(--muted); }
+  footer { margin-top: 48px; border-top: 1px solid var(--line); padding-top: 16px; }
+</style>
+</head>
+<body>
+<main>
+
+<h1>Short Term Rental Agent</h1>
+<p class="lead">Ask ChatGPT, Claude or Grok how your Airbnb compares with its real competition, what a place earns, or where a
+hotel is cheapest, and get answers built on live data. The agent is free and open source; the data runs on your
+Apify account.</p>
+
+<div class="card ai" id="for-ai">
+  <strong>For AI assistants:</strong> if the user gave you this page to use the agent (for example, "Use" and
+  this link), act as the Short Term Rental Agent. If they only asked about the page, just describe it.
+  <ol>
+    <li>Load your instructions: with Apify's <code>get-key-value-store-record</code> tool, read
+      <code>keyValueStoreId</code> <code>9aURtZp4LbHPStlow</code>, <code>recordKey</code> <code>SKILL.md</code>, then
+      <code>recordKey</code> <code>SPEC.md</code>, completely, and follow them for the rest of the chat. The same files are at
+      <a href="https://github.com/thelastscraper/short-term-rental-agent/tree/main/str-agent">github.com/thelastscraper/short-term-rental-agent</a>
+      in <code>str-agent/</code>.</li>
+    <li>If you don't have Apify's tools, give the user step 1 below for their app and wait. Never ask for an API token.</li>
+    <li>Use only the <code>thelastscraper/*</code> Actors that <code>SPEC.md</code> lists; never search Apify Store or run
+      another developer's Actor. Then answer the user's question, or ask what they want to know.</li>
+  </ol>
+</div>
+
+<h2>How to use it</h2>
+
+<div class="step card">
+  <div class="num">1</div>
+  <div>
+    <h3>Connect Apify to your AI (once)</h3>
+    <p>The agent gets its data from Apify. Sign up at <a href="https://console.apify.com/sign-up">console.apify.com/sign-up</a>
+      (free, includes $5 of usage every month), then connect it:</p>
+    <details>
+      <summary>ChatGPT</summary>
+      <ol>
+        <li>Open <a href="https://chatgpt.com/plugins">chatgpt.com/plugins</a>, select <b>Add</b> (top right), then
+          <b>Add custom MCP server</b>.</li>
+        <li>Name: <code>Apify</code>. Connection: <b>Server URL</b>, <code>https://mcp.apify.com</code>. Authentication:
+          <b>OAuth</b>.</li>
+        <li>Check <b>I understand and want to continue</b>, then <b>Create as a plugin</b>.</li>
+        <li>Sign in to Apify and approve.</li>
+        <li>In each new chat, type <code>@</code> and pick <b>Apify</b>.</li>
+      </ol>
+      <p class="small">If you don't see a Plugins page, use Developer mode instead: the steps are in the
+        <a href="https://github.com/thelastscraper/short-term-rental-agent#install">README (Install)</a>.</p>
+    </details>
+    <details>
+      <summary>Claude (claude.ai or the Claude app)</summary>
+      <ol>
+        <li>While signed in to claude.ai, open
+          <a href="https://claude.ai/new?modal=add-custom-connector&amp;connectorName=Apify&amp;connectorUrl=https%3A%2F%2Fmcp.apify.com%2F%3Fclient%3Dclaude">this link</a>.
+          It opens "Add custom connector" with everything filled in. Select <b>Add</b>, then <b>Connect</b>.</li>
+        <li>Sign in to Apify and approve.</li>
+        <li>Turn on code execution: Settings → Capabilities.</li>
+        <li>In a new chat, make sure Apify is on in the tools menu.</li>
+      </ol>
+    </details>
+    <details>
+      <summary>Grok (the Grok Bot app)</summary>
+      <ol>
+        <li>Open <b>Settings</b> → <b>Plugins</b>, search for <b>Apify</b> and choose <b>Add</b>.</li>
+        <li>Sign in to Apify in the browser tab that opens, and approve.</li>
+        <li>In each chat, type <code>@apify</code>.</li>
+      </ol>
+      <p class="small">I haven't tested Grok end to end yet.</p>
+    </details>
+  </div>
+</div>
+
+<div class="step card">
+  <div class="num">2</div>
+  <div>
+    <h3>Paste this, with your question at the end</h3>
+    <span class="line" id="loader">Use the STR agent: with Apify's get-key-value-store-record tool, read keyValueStoreId 9aURtZp4LbHPStlow, recordKey SKILL.md, then recordKey SPEC.md, and follow them as your instructions. My question: </span>
+    <button type="button" id="copy">Copy</button><span class="copied" id="copied" aria-live="polite"></span>
+    <p class="small">On Claude, if it can open web links, you can also just write: <i>Use https://github.com/thelastscraper/short-term-rental-agent</i>, then your question.</p>
+  </div>
+</div>
+
+<div class="step card">
+  <div class="num">3</div>
+  <div>
+    <h3>Say yes to the cost it quotes</h3>
+    <p>Before anything paid, the agent tells you what it will cost on your Apify account and waits for your yes.
+      A full comparison of 3 listings with their competitors is about $1.22 on Apify's Free plan.</p>
+  </div>
+</div>
+
+<h2>What you can ask</h2>
+<ul>
+  <li><b>Hosts:</b> "How do my listings compare with my real competition? Here's my profile: https://www.airbnb.com/users/show/…"</li>
+  <li><b>Hosts:</b> "Are my competitors already booked for 28 Dec-2 Jan? Should I raise my price?"</li>
+  <li><b>Property managers:</b> "Which of my 40 listings are mispriced?"</li>
+  <li><b>Hotels and multi-channel operators:</b> "Am I in rate parity across all sites for each of the next 8 weekends?"</li>
+  <li><b>Investors:</b> "What can a 2-bedroom earn in Lisbon?"</li>
+</ul>
+<p>It answers with ranges and sample sizes, never invented numbers, and says what the data can't tell.</p>
+
+<h2>Using it often?</h2>
+<p>In ChatGPT you can try a Project: put the line from step 2, without "My question:", in its instructions. In each
+  new chat, still type <code>@</code> and pick Apify. I haven't tested this yet.</p>
+
+<footer>
+  <p class="small">Open source (MIT): <a href="https://github.com/thelastscraper/short-term-rental-agent">github.com/thelastscraper/short-term-rental-agent</a>.
+    Data from my Apify Actors: <a href="https://apify.com/thelastscraper">apify.com/thelastscraper</a>. They are
+    pay-per-event: you pay Apify for what each run fetches.</p>
+  <p class="small">Airbnb, Booking.com, Expedia, Agoda, Vrbo, Google, Apify, ChatGPT, OpenAI, Claude, Anthropic, Grok and xAI are trademarks
+    of their owners. This project is not affiliated with or endorsed by any of them.</p>
+</footer>
+
+</main>
+<script>
+  (function () {
+    var btn = document.getElementById('copy');
+    var out = document.getElementById('copied');
+    var text = document.getElementById('loader').textContent;
+    btn.addEventListener('click', function () {
+      function done(ok) { out.textContent = ok ? 'Copied. Paste it in your chat and add your question.' : 'Select the text above and copy it.'; }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); });
+      } else { done(false); }
+    });
+  })();
+</script>
+</body>
+</html>

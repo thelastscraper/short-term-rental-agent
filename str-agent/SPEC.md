@@ -76,7 +76,8 @@ history and must never pretend to.
 
 1. **Connect Apify.** Every platform uses Apify's own connection and sign in with Apify's OAuth in the
    browser. The user never pastes an API token, and the bot never asks for one.
-   - **Grok:** Apify's official Grok Bot plugin (Settings → Plugins → Apify → Add). Docs:
+   - **Grok:** Apify's official Grok Bot plugin (Settings → Plugins → Apify → Add; in each chat, type
+     `@apify`). Docs:
      https://docs.apify.com/platform/integrations/grok-bot
    - **Claude (claude.ai or Claude Desktop):** Apify is added by hand as a **custom connector**. Use the
      custom connector even if Apify appears in Claude's connector list: the agent needs Apify's

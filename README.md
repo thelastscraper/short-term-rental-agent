@@ -9,9 +9,12 @@ it has not been tested end to end on every one yet.
 
 ## Quick start
 
+**Not technical?** The simple guide, with a copy button: https://thelastscraper.github.io/short-term-rental-agent/
+
 1. Connect Apify to your AI once (on Claude, also turn on code execution; steps per platform in
    [Install](#install)). If you skip this, the AI tells you how.
-2. In a new chat (on ChatGPT, type `@` and pick Apify first), paste this with your question at the end:
+2. In a new chat (on ChatGPT, type `@` and pick Apify first; on Grok, type `@apify`), paste this with your
+   question at the end:
 
    ```text
    Use the STR agent: with Apify's get-key-value-store-record tool, read keyValueStoreId 9aURtZp4LbHPStlow, recordKey SKILL.md, then recordKey SPEC.md, and follow them as your instructions. My question:
@@ -148,9 +151,10 @@ mkdir -p ~/.claude/skills && cp -r str-agent ~/.claude/skills/
 
 ### Grok
 
-1. Connect Apify with its official Grok Bot plugin.
-2. Build a Grok Bot template from [`str-agent/SPEC.md`](str-agent/SPEC.md): its instructions, first message
-   and skills.
+1. Connect Apify with its official Grok Bot plugin: Settings → Plugins → Apify → Add, then sign in to Apify.
+   In each chat, type `@apify`.
+2. Paste the Apify line from [Quick start](#quick-start) with your question. Or build a Grok Bot template from
+   [`str-agent/SPEC.md`](str-agent/SPEC.md): its instructions, first message and skills.
 
 ## Cost
 
