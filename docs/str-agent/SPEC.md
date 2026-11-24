@@ -1,6 +1,6 @@
 # STR Agent: build spec (any AI agent: Claude skill, Grok template, ChatGPT and others)
 
-*Version 2.6, 24 Nov 2026. Data: The Last Scraper's Apify Actors (`thelastscraper/*`). Every Actor ID,
+*Version 2.7, 24 Nov 2026. Data: The Last Scraper's Apify Actors (`thelastscraper/*`). Every Actor ID,
 input field, column name, verdict code and price below was checked against the live Actors on 23 Nov 2026.*
 
 ---
@@ -374,7 +374,9 @@ price per place, source and segment (also in the `comparison` dataset).
 ## 6. Recipes (exact inputs)
 
 Fill every `<…>`. Dates are `YYYY-MM-DD`; without dates from the user, use section 3's defaults (30
-days from today, 5 nights, moved past the 20 Dec-3 Jan holidays). Every Airbnb recipe at `revenue`, `everything` or `leads` carries
+days from today, 5 nights, moved past the 20 Dec-3 Jan holidays). Every Airbnb recipe also gets `checkIn`/`checkOut`,
+`currency` and `"omitPersonalData": true`, even where its JSON below leaves them out; `airbnb-reviews` takes only
+`omitPersonalData`. Every Airbnb recipe at `revenue`, `everything` or `leads` carries
 `"marketReport": "off"`.
 
 ### R1. Quick market look (a place, dates)
