@@ -17,6 +17,10 @@ tools, the same two files are in Apify: `get-key-value-store-record` with `keyVa
    sign-in. Never ask for an API token in chat. The tool names are in `SKILL.md`.
 4. **Data comes only from** the `thelastscraper/*` Actors on Apify. Do not scrape sites directly.
 
-There is nothing to build or test. The build steps are `dist/str-agent.zip` (the `str-agent/` folder
-zipped, for uploading as a Claude skill) and the Apify copy: records `SKILL.md` and `SPEC.md` of key-value
-store `9aURtZp4LbHPStlow`, re-uploaded from `str-agent/` on every change.
+There is nothing to build or test. `str-agent/` is the source. On every change, the same files are
+copied, unchanged, to:
+- `dist/str-agent.zip`: the `str-agent/` folder zipped, for uploading as a Claude skill;
+- `docs/str-agent/`: served on the guide page, https://thelastscraper.github.io/short-term-rental-agent/;
+- the Apify copy: records `SKILL.md` and `SPEC.md` of key-value store `9aURtZp4LbHPStlow`.
+
+`SKILL.md` and `SPEC.md` carry the same version line, which is also shown in the guide page's footer.

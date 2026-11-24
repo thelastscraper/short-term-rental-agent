@@ -179,6 +179,7 @@ Prices per Actor are on their Apify Store pages:
 | `str-agent/SKILL.md` | The skill's entry point for Claude |
 | `str-agent/SPEC.md` | The agent's full brief: rules, Actors, recipes and honesty rules. It is also the source for the Grok template. |
 | `dist/str-agent.zip` | The skill, ready to upload to Claude |
+| `docs/` | The simple guide page (GitHub Pages), with copies of `SKILL.md` and `SPEC.md` |
 | `AGENTS.md` | What coding agents (Codex, Copilot, Cursor, Gemini CLI…) read first |
 | `CLAUDE.md` | The same pointer, for Claude Code |
 | `LICENSE` | MIT |
