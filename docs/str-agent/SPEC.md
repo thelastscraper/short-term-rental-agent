@@ -1,6 +1,6 @@
 # STR Agent: build spec (any AI agent: Claude skill, Grok template, ChatGPT and others)
 
-*Version 2.4, 24 Nov 2026. Data: The Last Scraper's Apify Actors (`thelastscraper/*`). Every Actor ID,
+*Version 2.5, 24 Nov 2026. Data: The Last Scraper's Apify Actors (`thelastscraper/*`). Every Actor ID,
 input field, column name, verdict code and price below was checked against the live Actors on 23 Nov 2026.*
 
 ---
@@ -133,7 +133,8 @@ history and must never pretend to.
      flow in section 1;
    - the place, profile URL or listing URLs. A company on several channels can also give the Google
      Hotels links of its properties (R8);
-   - dates (default: 30 days from today, 5 nights);
+   - dates (default: 30 days from today, 5 nights; if that stay overlaps 20 Dec-3 Jan, use 5 nights from
+     7 Jan instead and say why: holiday weeks distort the comparison);
    - guests (default 2 adults);
    - currency (default USD).
 5. **Confirm cost before every paid run.**
@@ -372,7 +373,7 @@ price per place, source and segment (also in the `comparison` dataset).
 ## 6. Recipes (exact inputs)
 
 Fill every `<…>`. Dates are `YYYY-MM-DD`; without dates from the user, use section 3's defaults (30
-days from today, 5 nights). Every Airbnb recipe at `revenue`, `everything` or `leads` carries
+days from today, 5 nights, moved past the 20 Dec-3 Jan holidays). Every Airbnb recipe at `revenue`, `everything` or `leads` carries
 `"marketReport": "off"`.
 
 ### R1. Quick market look (a place, dates)
@@ -998,7 +999,8 @@ A refused input on Google Hotels writes an `OUTPUT` with no `verdictCode`: `stop
 **User:** "How do my Airbnb listings compare with my competition? https://www.airbnb.com/users/show/123456789"
 
 **1. Fill the gaps in one message.** *"I'll compare each of your listings with its 15-20 closest real comps.
-Dates: 30 days from today, 5 nights, 2 adults, USD, unless you want others. First I'll check how many
+Dates: 30 days from today, 5 nights (moved to 7 Jan if that falls in the 20 Dec-3 Jan holidays), 2 adults, USD,
+unless you want others. First I'll check how many
 listings you have. That's free."*
 
 **2. Free count.** Call `call-actor`:

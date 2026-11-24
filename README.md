@@ -9,28 +9,30 @@ it has not been tested end to end on every one yet.
 
 ## Quick start
 
-**Not technical?** The simple guide, with a copy button: https://thelastscraper.github.io/short-term-rental-agent/
+The simple guide, with copy buttons: https://thelastscraper.github.io/short-term-rental-agent/
 
 1. Connect Apify to your AI once (on Claude, also turn on code execution; steps per platform in
    [Install](#install)). If you skip this, the AI tells you how.
-2. In a new chat (on ChatGPT, type `@` and pick Apify first; on Grok, type `@apify`), paste this with your
-   question at the end:
+2. In a new chat, turn Apify on (ChatGPT: type `@` and pick Apify; Grok: type `@apify`; Claude: turn Apify
+   on in the + (tools) menu), then write the guide's link and your question:
 
-   ```text
-   Use the STR agent: with Apify's get-key-value-store-record tool, read keyValueStoreId 9aURtZp4LbHPStlow, recordKey SKILL.md, then recordKey SPEC.md, and follow them as your instructions. My question:
-   ```
+   > Use https://thelastscraper.github.io/short-term-rental-agent/ — What do 2-bedroom Airbnbs in Lisbon ask for a week in August?
 
-   It works on any AI with Apify connected, even one that can't open web links: the agent's files are
-   copied to that Apify storage, the same as in this repo. Tested on free ChatGPT.
-
-   **Or, on an AI that can open web links** (such as Claude), the link and your question:
-
-   > Use https://github.com/thelastscraper/short-term-rental-agent. What do 2-bedroom Airbnbs in Lisbon ask for a week in August?
+   The AI opens the guide, loads the agent from Apify and answers. Tested on free ChatGPT, which can't open
+   GitHub links but did open the guide.
 
 The AI then answers by the agent's rules, with data from my Actors. Ask without loading the agent and the AI
 doesn't know these rules: it may pick other scrapers and skip the checks.
 
-If neither works, download [`SKILL.md`](https://raw.githubusercontent.com/thelastscraper/short-term-rental-agent/main/str-agent/SKILL.md)
+**If the AI says it can't open the link,** paste this instead, with your question at the end. It loads the
+agent's files from an Apify storage that holds the same files as this repo:
+
+```text
+Use the STR agent: with Apify's get-key-value-store-record tool, read keyValueStoreId 9aURtZp4LbHPStlow, recordKey SKILL.md, then recordKey SPEC.md, and follow them as your instructions. My question:
+```
+
+On Claude, *"Use https://github.com/thelastscraper/short-term-rental-agent"* with your question also works.
+If nothing works, download [`SKILL.md`](https://raw.githubusercontent.com/thelastscraper/short-term-rental-agent/main/str-agent/SKILL.md)
 and [`SPEC.md`](https://raw.githubusercontent.com/thelastscraper/short-term-rental-agent/main/str-agent/SPEC.md),
 attach both, and write *"Follow SKILL.md and SPEC.md"* with your question.
 
@@ -105,7 +107,7 @@ Every platform needs the same two things:
 |---|---|---|
 | Claude (claude.ai, Desktop) | Add a **custom connector** by hand (steps below): URL `https://mcp.apify.com` | Upload [`dist/str-agent.zip`](dist/str-agent.zip) as a skill |
 | Claude Code | `claude mcp add apify "https://mcp.apify.com" -t http` | `mkdir -p ~/.claude/skills && cp -r str-agent ~/.claude/skills/` |
-| ChatGPT | [chatgpt.com/plugins](https://chatgpt.com/plugins) → **Add** → **Add custom MCP server**: Name `Apify`, Server URL `https://mcp.apify.com`, Authentication OAuth → **Create as a plugin**; then in each chat type `@` and pick Apify (no Plugins page: Developer mode → Apps & Connectors → Create; beta, depends on your plan) | In a chat where you picked Apify with `@`, paste the Apify line from [Quick start](#quick-start) with your question (free ChatGPT can't open GitHub links). Or a Project or GPT: paste `SKILL.md` into the instructions and add `SPEC.md` as a file |
+| ChatGPT | [chatgpt.com/plugins](https://chatgpt.com/plugins) → **Add** → **Add custom MCP server**: Name `Apify`, Server URL `https://mcp.apify.com`, Authentication OAuth → **Create as a plugin**; then in each chat type `@` and pick Apify (no Plugins page: Developer mode → Apps & Connectors → Create; beta, depends on your plan) | In a chat where you picked Apify with `@`, write *"Use https://thelastscraper.github.io/short-term-rental-agent/"* with your question (free ChatGPT can't open GitHub links, but it opens this guide). Or a Project or GPT: paste `SKILL.md` into the instructions and add `SPEC.md` as a file |
 | Grok | Apify's Grok Bot plugin | Build a template from `SPEC.md` |
 | Any other agent with MCP (Gemini CLI, Cursor, VS Code…) | Add the remote MCP server `https://mcp.apify.com` | Use `SKILL.md` as the system prompt and give it `SPEC.md`. Coding agents read [`AGENTS.md`](AGENTS.md). |
 
@@ -140,7 +142,7 @@ the chat's tools menu; if it isn't there, use claude.ai in the phone's browser. 
 |---|---|---|
 | **Attach the files** | In a new chat with Apify turned on, attach [`str-agent/SKILL.md`](str-agent/SKILL.md) and [`str-agent/SPEC.md`](str-agent/SPEC.md) and write: *"Follow SKILL.md and SPEC.md as your instructions."* Then ask your question. | Trying it right now, on any device |
 | **A Claude Project** | On claude.ai (web), create a Project: paste `SKILL.md` into its instructions and add `SPEC.md` as a project file. Open that Project from the phone app and chat as usual. | Everyday use from the phone |
-| **Paste one line** | The Apify line from [Quick start](#quick-start), with your question. It needs no web links. On a Claude that can open links, the GitHub link works too. | No files at hand |
+| **Give it the guide's link** | Write *"Use https://thelastscraper.github.io/short-term-rental-agent/"* with your question. If it can't open links, paste the Apify line from [Quick start](#quick-start). | No files at hand |
 
 ### Claude Code
 
@@ -153,7 +155,7 @@ mkdir -p ~/.claude/skills && cp -r str-agent ~/.claude/skills/
 
 1. Connect Apify with its official Grok Bot plugin: Settings → Plugins → Apify → Add, then sign in to Apify.
    In each chat, type `@apify`.
-2. Paste the Apify line from [Quick start](#quick-start) with your question. Or build a Grok Bot template from
+2. Write the guide's link with your question ([Quick start](#quick-start)). Or build a Grok Bot template from
    [`str-agent/SPEC.md`](str-agent/SPEC.md): its instructions, first message and skills.
 
 ## Cost
