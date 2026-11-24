@@ -1,6 +1,6 @@
 # STR Agent: build spec (any AI agent: Claude skill, Grok template, ChatGPT and others)
 
-*Version 2.5, 24 Nov 2026. Data: The Last Scraper's Apify Actors (`thelastscraper/*`). Every Actor ID,
+*Version 2.6, 24 Nov 2026. Data: The Last Scraper's Apify Actors (`thelastscraper/*`). Every Actor ID,
 input field, column name, verdict code and price below was checked against the live Actors on 23 Nov 2026.*
 
 ---
@@ -131,7 +131,8 @@ history and must never pretend to.
 4. **Ask only what is needed:**
    - who they are, in one question (host, manager, company on several channels, investor), to pick the
      flow in section 1;
-   - the place, profile URL or listing URLs. A company on several channels can also give the Google
+   - the place, profile URL or listing URLs. Pass a profile URL exactly as given: `/users/show/<id>` and
+     `/users/profile/<id>` use different IDs, so never turn one into the other. A company on several channels can also give the Google
      Hotels links of its properties (R8);
    - dates (default: 30 days from today, 5 nights; if that stay overlaps 20 Dec-3 Jan, use 5 nights from
      7 Jan instead and say why: holiday weeks distort the comparison);
@@ -570,7 +571,7 @@ Report shares: *"64% of Google-listed rentals here are on Vrbo"*.
 
 | # | What | Actor and input | Typical cost (Free / Bronze) |
 |---|---|---|---|
-| 0 | **Intake:** profile URL `https://www.airbnb.com/users/show/<HOST_ID>` (or listing URLs), currency, optional dates and guests. Confirm the cost after the free count of the host's listings (section 15, step 2). | — | $0 |
+| 0 | **Intake:** the profile URL exactly as the user gives it, `https://www.airbnb.com/users/show/<id>` or `https://www.airbnb.com/users/profile/<id>` (or listing URLs), currency, optional dates and guests. Confirm the cost after the free count of the host's listings (section 15, step 2). | — | $0 |
 | 1 | **The host's listings**, with everything needed | `airbnb-scraper`: `{"where": ["<profile URL>"], "dataLevel": "everything", "maxReviewPages": 2, "photos": "full", "hostProfile": "full", "calendarDays": true, "marketReport": "off", "omitPersonalData": true, "checkIn": …, "checkOut": …, "adults": A, "currency": "USD", "maxListingsPerHost": 20}`. Their reviews are in the `reviews` dataset and their daily calendar rows in the `calendar` dataset (columns as in R7). | ~$0.17 / $0.14 for 3 listings |
 | 2 | **Size the radius** per listing (free counts) | `airbnb-scraper`: `{"bbox": <box of radius R, below>, "dataLevel": "estimate", "bedroomsExact": N, "minBathrooms": B - 0.5, "roomTypes": ["Entire home/apt"], "amenities": [<same as step 3>], "adults": A, "checkIn": …, "checkOut": …}`, with **no `where`** (section 4, rule 11). About 20-25 s. Read `estimate.listings_estimated`; the count of booked listings is "at least" (section 5). | $0 |
 | 3 | **Comp candidates** per listing | `airbnb-scraper`: `{"bbox": <the same box>, "distanceFrom": {"lat": …, "lng": …}, "maxDistanceKm": R, "bedroomsExact": N, "minBathrooms": B - 0.5, "roomTypes": ["Entire home/apt"], "excludeHotels": true, "amenities": [<filter values the listing advertises; omit if none>], "adults": A, "checkIn": …, "checkOut": …, "coverage": "all", "dataLevel": "leads", "maxListings": 60 + H, "marketReport": "off", "omitPersonalData": true, "currency": "USD"}`, with **no `where`**. `amenities` takes only the Actor's filter values (section 5), e.g. `["Pool", "Gym"]`: non-matching listings are dropped before charge. Check the pool kind (shared/private), views and security in code. The run keeps the nearest listings (at `leads` the rows are ordered by lead score: sort on `distance_km` in code) and takes about 1 minute per listing. | up to ~$0.66 / $0.50 for 3 × 63 (H = 3) |

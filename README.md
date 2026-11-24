@@ -129,8 +129,8 @@ Every platform needs the same two things:
 3. **Upload the skill:** download [`dist/str-agent.zip`](dist/str-agent.zip), then go to Customize → Skills →
    Upload a skill. Skills are uploaded from claude.ai on the web or from Claude Desktop; the iPhone app has
    no skill upload. On a phone, use one of the options in the next section.
-4. **Ask,** for example: *"Compare my Airbnb listings with their competition:
-   https://www.airbnb.com/users/show/&lt;your profile id&gt;"*.
+4. **Ask,** for example: *"Compare my Airbnb listings with their competition: &lt;your Airbnb profile link,
+   copied as Airbnb shows it&gt;"*.
 
 ### Claude on iPhone or Android, or without installing the skill
 
