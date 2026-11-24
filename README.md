@@ -45,8 +45,8 @@ attach both, and write *"Follow SKILL.md and SPEC.md"* with your question.
    If you cannot open them but have Apify's tools, read the same files with `get-key-value-store-record`
    (`keyValueStoreId` `9aURtZp4LbHPStlow`, `recordKey` `SKILL.md`, then `SPEC.md`). Otherwise, tell the
    user and ask them to attach both files (download them from the `str-agent/` folder of this repo).
-2. **Check for Apify's MCP tools** (`call-actor`, `get-actor-run`, `get-dataset-items`). If you don't have
-   them, give the user only the steps for their platform (`SPEC.md` section 3, or [Install](#install)) and
+2. **Check for Apify's MCP tools**: `get-key-value-store-record`, `get-actor-run`, `get-dataset-items`, and
+   either `call-actor` or tools named `thelastscraper--…` (names may carry a prefix). If you don't have them, give the user only the steps for their platform (`SPEC.md` section 3, or [Install](#install)) and
    wait until they say Apify is connected. Never ask for an API token.
 3. **Use only the `thelastscraper/*` Actors that `SPEC.md` lists.** Never search Apify Store for other
    Actors or run another developer's Actor, even if the user asked a question before giving you this link.
@@ -107,7 +107,7 @@ Every platform needs the same two things:
 |---|---|---|
 | Claude (claude.ai, Desktop) | Add a **custom connector** by hand (steps below): URL `https://mcp.apify.com` | Upload [`dist/str-agent.zip`](dist/str-agent.zip) as a skill |
 | Claude Code | `claude mcp add apify "https://mcp.apify.com" -t http` | `mkdir -p ~/.claude/skills && cp -r str-agent ~/.claude/skills/` |
-| ChatGPT | [chatgpt.com/plugins](https://chatgpt.com/plugins) → **Add** → **Add custom MCP server**: Name `Apify`, Server URL `https://mcp.apify.com`, Authentication OAuth → **Create as a plugin**; then in each chat type `@` and pick Apify (no Plugins page: Developer mode → Apps & Connectors → Create; beta, depends on your plan) | In a chat where you picked Apify with `@`, write *"Use https://thelastscraper.github.io/short-term-rental-agent/"* with your question (free ChatGPT can't open GitHub links, but it opens this guide). Or a Project or GPT: paste `SKILL.md` into the instructions and add `SPEC.md` as a file |
+| ChatGPT | [chatgpt.com/plugins](https://chatgpt.com/plugins) → **Add** → **Add custom MCP server**: Name `Apify`, Server URL `https://mcp.apify.com/?tools=thelastscraper/airbnb-scraper,thelastscraper/airbnb-listing-details,thelastscraper/airbnb-calendar-occupancy,thelastscraper/airbnb-reviews,thelastscraper/google-hotels-vacation-rentals,get-actor-run,get-dataset-items,get-key-value-store-record,abort-actor-run` (only this agent's tools; with the full tool set, ChatGPT may show a safety warning), Authentication OAuth → **Create as plugin**; then in each chat type `@` and pick Apify (no Plugins page: Developer mode → Apps & Connectors → Create; beta, depends on your plan) | In a chat where you picked Apify with `@`, write *"Use https://thelastscraper.github.io/short-term-rental-agent/"* with your question (free ChatGPT can't open GitHub links, but it opens this guide). Or a Project or GPT: paste `SKILL.md` into the instructions and add `SPEC.md` as a file |
 | Grok | Apify's Grok Bot plugin | Build a template from `SPEC.md` |
 | Any other agent with MCP (Gemini CLI, Cursor, VS Code…) | Add the remote MCP server `https://mcp.apify.com` | Use `SKILL.md` as the system prompt and give it `SPEC.md`. Coding agents read [`AGENTS.md`](AGENTS.md). |
 

@@ -81,9 +81,12 @@ Apify account.</p>
       <ol>
         <li>Open <a href="https://chatgpt.com/plugins">chatgpt.com/plugins</a>, select <b>Add</b> (top right), then
           <b>Add custom MCP server</b>.</li>
-        <li>Name: <code>Apify</code>. Connection: <b>Server URL</b>, <code>https://mcp.apify.com</code>. Authentication:
-          <b>OAuth</b>.</li>
-        <li>Check <b>I understand and want to continue</b>, then <b>Create as a plugin</b>.</li>
+        <li>Name: <code>Apify</code>. Connection: <b>Server URL</b>, this address. It loads only this agent's tools; in my
+          test, ChatGPT then showed no safety warning:
+          <span class="line" id="chatgpt-url">https://mcp.apify.com/?tools=thelastscraper/airbnb-scraper,thelastscraper/airbnb-listing-details,thelastscraper/airbnb-calendar-occupancy,thelastscraper/airbnb-reviews,thelastscraper/google-hotels-vacation-rentals,get-actor-run,get-dataset-items,get-key-value-store-record,abort-actor-run</span>
+          <button type="button" class="copy" data-src="chatgpt-url">Copy</button><span class="copied" aria-live="polite"></span>
+          Authentication: <b>OAuth</b>.</li>
+        <li>Check <b>I understand and want to continue</b>, then <b>Create as plugin</b>.</li>
         <li>Sign in to Apify and approve.</li>
         <li>In each new chat, type <code>@</code> and pick <b>Apify</b>.</li>
       </ol>
@@ -161,10 +164,10 @@ Apify account.</p>
   If the user gave you this page to use the agent (for example, "Use" and
   this link), act as the Short Term Rental Agent. If they only asked about the page, just describe it.
   <ol>
-    <li><b>First, check whether Apify is on in this chat.</b> It is on if you have Apify's tools, such as
-      <code>call-actor</code> and <code>get-key-value-store-record</code> (the names may carry a prefix). Don't
+    <li><b>First, check whether Apify is on in this chat.</b> It is on if you have Apify's tools: <code>get-key-value-store-record</code>
+      and either <code>call-actor</code> or tools named <code>thelastscraper--…</code> (the names may carry a prefix). Don't
       call any other tool or search the web for the user's question before this check.</li>
-    <li><b>If Apify is on:</b> with <code>get-key-value-store-record</code>, read <code>keyValueStoreId</code>
+    <li><b>If Apify is on:</b> before any other Apify call, with <code>get-key-value-store-record</code>, read <code>keyValueStoreId</code>
       <code>9aURtZp4LbHPStlow</code>, <code>recordKey</code> <code>SKILL.md</code>, then <code>recordKey</code>
       <code>SPEC.md</code>, completely, and follow them for the rest of the chat. Then answer the user's question, or
       ask what they want to know. The same files are at
@@ -191,8 +194,8 @@ Apify account.</p>
           <ul>
             <li>ChatGPT: open <a href="https://chatgpt.com/plugins">https://chatgpt.com/plugins</a>, select <b>Add</b> (top right),
               then <b>Add custom MCP server</b>. Name <code>Apify</code>; Connection <b>Server URL</b>,
-              <code>https://mcp.apify.com</code>; Authentication <b>OAuth</b>. Check <b>I understand and want to continue</b>,
-              select <b>Create as a plugin</b>, then sign in to Apify and approve. If there is no Plugins page: Settings →
+              <code>https://mcp.apify.com/?tools=thelastscraper/airbnb-scraper,thelastscraper/airbnb-listing-details,thelastscraper/airbnb-calendar-occupancy,thelastscraper/airbnb-reviews,thelastscraper/google-hotels-vacation-rentals,get-actor-run,get-dataset-items,get-key-value-store-record,abort-actor-run</code>; Authentication <b>OAuth</b>. Check <b>I understand and want to continue</b>,
+              select <b>Create as plugin</b>, then sign in to Apify and approve. If there is no Plugins page: Settings →
               Apps &amp; Connectors → Advanced → turn on Developer mode, then Apps &amp; Connectors → <b>Create</b>, with the same
               name, URL and OAuth.</li>
             <li>Claude: while signed in to claude.ai, open
@@ -212,7 +215,7 @@ Apify account.</p>
 </div>
 
 <footer>
-  <p class="small">Agent version <span id="agent-version">2.7, 24 Nov 2026</span>. The same files are on GitHub, on
+  <p class="small">Agent version <span id="agent-version">2.8, 24 Nov 2026</span>. The same files are on GitHub, on
     this site and in Apify.</p>
   <p class="small">Open source (MIT): <a href="https://github.com/thelastscraper/short-term-rental-agent">github.com/thelastscraper/short-term-rental-agent</a>.
     Data from my Apify Actors: <a href="https://apify.com/thelastscraper">apify.com/thelastscraper</a>. They are
@@ -229,7 +232,7 @@ Apify account.</p>
       var out = btn.nextElementSibling;
       var text = document.getElementById(btn.getAttribute('data-src')).textContent;
       btn.addEventListener('click', function () {
-        function done(ok) { out.textContent = ok ? 'Copied. Paste it in your chat and add your question.' : 'Select the text above and copy it.'; }
+        function done(ok) { out.textContent = ok ? 'Copied.' : 'Select the text above and copy it.'; }
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); });
         } else { done(false); }

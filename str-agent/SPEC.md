@@ -1,6 +1,6 @@
 # STR Agent: build spec (any AI agent: Claude skill, Grok template, ChatGPT and others)
 
-*Version 2.7, 24 Nov 2026. Data: The Last Scraper's Apify Actors (`thelastscraper/*`). Every Actor ID,
+*Version 2.8, 24 Nov 2026. Data: The Last Scraper's Apify Actors (`thelastscraper/*`). Every Actor ID,
 input field, column name, verdict code and price below was checked against the live Actors on 23 Nov 2026.*
 
 ---
@@ -105,11 +105,15 @@ history and must never pretend to.
      The Apify connector and code execution are still needed.
    - **Claude Code:** `claude mcp add apify "https://mcp.apify.com" -t http`. The sign-in page opens on
      first use.
-   - **ChatGPT** (screens as of November 2026, as in Apify's MCP server README):
+   - **ChatGPT** (screens as of 24 Nov 2026, from the owner's test; Apify's MCP server README gives the same
+     steps with the plain URL):
      1. Open https://chatgpt.com/plugins, select **Add** (top right), then **Add custom MCP server**.
-     2. Fill in: Name `Apify`; Connection **Server URL**, `https://mcp.apify.com`; Authentication **OAuth**.
-        No client ID or secret is needed.
-     3. Check **I understand and want to continue**, then select **Create as a plugin**.
+     2. Fill in: Name `Apify`; Connection **Server URL**:
+        `https://mcp.apify.com/?tools=thelastscraper/airbnb-scraper,thelastscraper/airbnb-listing-details,thelastscraper/airbnb-calendar-occupancy,thelastscraper/airbnb-reviews,thelastscraper/google-hotels-vacation-rentals,get-actor-run,get-dataset-items,get-key-value-store-record,abort-actor-run`;
+        Authentication **OAuth**. No client ID or secret is needed. This URL loads only this agent's tools. In a
+        test on 24 Nov 2026, ChatGPT showed no safety warning with it; with the full tool set, ChatGPT may show
+        one.
+     3. Check **I understand and want to continue**, then select **Create as plugin**.
      4. Sign in to Apify, review the tools and install the plugin.
      5. In each new chat, type `@` and select **Apify**.
 
@@ -173,6 +177,12 @@ history and must never pretend to.
        here, never in `input`. For a free `estimate` run, use `"maxTotalChargeUsd": 0.10`.
 
      It returns `runId`, `status` and `storages`.
+   - **Or start with the Actor's own tool** when your tools include one named `thelastscraper--<name>`
+     (for example `thelastscraper--airbnb-scraper`; ChatGPT's recommended connector in section 3 loads only
+     these, without `call-actor` or `fetch-actor-details`). Pass the section 6 input fields as its
+     arguments, plus `waitSecs`. It starts the same run and returns its status and storage IDs; go on with
+     the steps below. It has no `callOptions`: quote the cost first and keep the recipe's `maxListings` or
+     `maxItems`. Without `fetch-actor-details`, use only the fields this brief lists.
    - **Poll** with `get-actor-run` (`runId`, `waitSecs` up to 45) until the status is final: `SUCCEEDED`,
      `FAILED`, `ABORTED` or `TIMED-OUT`. Its `summary` and `nextStep` are Apify's; the Actor's own verdict
      is in `OUTPUT` (rule 8).
@@ -228,7 +238,7 @@ history and must never pretend to.
 
 Prices are per 1,000 events on Apify's Free plan and on the Bronze tier (Apify's Starter plan; Scale =
 Silver, Business = Gold, which pay less). To quote the user's own tier, call `fetch-actor-details` with
-`output: {"pricing": true}`; it returns `userTier`. There is no start fee.
+`output: {"pricing": true}` if you have it; it returns `userTier`. Otherwise quote Free-plan prices. There is no start fee.
 
 | Actor | What it gives | Main events (Free / Bronze per 1,000) |
 |---|---|---|
@@ -594,6 +604,12 @@ Report shares: *"64% of Google-listed rentals here are on Vrbo"*.
   the cap leaves room for them. If the host gave only listing URLs, H = their `host_listings_total`,
   at most 20.
 
+**Only some of the host's listings?** When the user picks one or a few, don't run step 1 on the whole
+profile. First list all of them cheaply: `airbnb-scraper` with `{"where": ["<profile URL>"], "dataLevel":
+"snapshot", "maxListingsPerHost": 0, "omitPersonalData": true, "checkIn": …, "checkOut": …, "currency": "USD"}`
+(about $0.015 for 10 listings on the Free plan; quote it). Then run step 1 with only the chosen listings' URLs.
+Every listing in that snapshot, and its `host_id`, still leaves the comps, and H counts them by `lat`/`lng`.
+
 **Totals for 3 listings with 20 comps each (estimates, H = 3):**
 
 | Version | Free | Bronze | Time |
@@ -943,6 +959,11 @@ the comp set's.
 ---
 
 ## 12. Reading run results (`OUTPUT.verdictCode`)
+
+**When Apify refuses to start a run** (for example, the user's plan has reached its monthly usage limit, or
+the account has no credit), stop. Tell the user Apify's message and the fix: wait for the plan's monthly
+reset, or upgrade the plan in Apify Console (Billing). Then wait. Never fill the gap with web
+searches, other sites or estimates.
 
 **Airbnb Actors** (all four):
 
