@@ -1,6 +1,6 @@
 # STR Agent: build spec (any AI agent: Claude skill, Grok template, ChatGPT and others)
 
-*Version 2.17, 24 Nov 2026. Data: The Last Scraper's Apify Actors (`thelastscraper/*`). Every Actor ID,
+*Version 2.18, 24 Nov 2026. Data: The Last Scraper's Apify Actors (`thelastscraper/*`). Every Actor ID,
 input field, column name, verdict code and price below was checked against the live Actors on 23 Nov 2026.*
 
 ---
@@ -233,7 +233,7 @@ history and must never pretend to.
 13. **You fetch the data yourself.** Never send the user elsewhere for data ("ask Apify"). When a step is
     missing (calendars, prices for other weeks), offer to run it, quote its cost, and run it after a yes.
     Use the exact inputs of section 6 and section 7. Never lower `dataLevel` or skip a step that applies
-    (steps 7 and 8 are optional; step 6 is only for studios and 1-bedrooms) to save cost unless the user
+    (steps 7 and 8 are optional; step 6 is only for studios and 1-bedrooms, by `bedrooms`) to save cost unless the user
     asks; if they do, say which KPI will be missing.
 14. **IDs, titles and links come from data rows, never typed by hand.** Copy `listing_id`, `title` and
     `url` from the same dataset row (in code). Before answering, check that every listing you name has a
@@ -599,7 +599,7 @@ Report shares: *"64% of Google-listed rentals here are on Vrbo"*.
 | 3 | **Comp candidates** per listing | `airbnb-scraper`: `{"bbox": <the same box>, "distanceFrom": {"lat": …, "lng": …}, "maxDistanceKm": R, "bedroomsExact": N, "minBathrooms": B - 0.5, "roomTypes": ["Entire home/apt"], "excludeHotels": true, "amenities": [<filter values the listing advertises; omit if none>], "adults": A, "checkIn": …, "checkOut": …, "coverage": "all", "dataLevel": "leads", "maxListings": 60 + H, "marketReport": "off", "omitPersonalData": true, "currency": "USD"}`, with **no `where`**. `amenities` takes only the Actor's filter values (section 5), e.g. `["Pool", "Gym"]`: non-matching listings are dropped before charge. Check the pool kind (shared/private), views and security in code. The run keeps the nearest listings (at `leads` the rows are ordered by lead score: sort on `distance_km` in code) and takes about 1 minute per listing. | up to ~$0.66 / $0.50 for 3 × 63 (H = 3) |
 | 4 | **Score and select** the comp set (below), in code | — | $0 |
 | 5 | **Comps' reviews:** themes, last 12 months, the 10 newest per comp | `airbnb-reviews`: R5 with the comp set's IDs and `"maxReviewsPerListing": 10` | ~$0.30 / $0.24 (3 × 20 × 10 reviews) |
-| 6 | **Hotels**, only for studios and 1-bedrooms | `google-hotels-vacation-rentals`: `{"where": ["<city>"], "sources": ["hotels"], "hotelStarClasses": ["3", "4"], "checkIn": …, "checkOut": …, "adults": 2, "areaFilter": {"lat": …, "lng": …, "radiusKm": 3}, "maxItemsPerSource": 15, "outputFormat": "compact", "currency": "USD"}` (15 per star class: up to 30 hotels) | ~$0.09 / $0.08 for 3 listings |
+| 6 | **Hotels**, only for studios and 1-bedrooms (by `bedrooms` 0 or 1, whatever the format: a 1-bedroom loft or duplex counts) | `google-hotels-vacation-rentals`: `{"where": ["<city>"], "sources": ["hotels"], "hotelStarClasses": ["3", "4"], "checkIn": …, "checkOut": …, "adults": 2, "areaFilter": {"lat": …, "lng": …, "radiusKm": 3}, "maxItemsPerSource": 15, "outputFormat": "compact", "currency": "USD"}` (15 per star class: up to 30 hotels) | ~$0.09 / $0.08 for 3 listings |
 | 7 | **Optional: price curve.** Own listing and its 20 comps over 8 weekly windows. | `airbnb-scraper`: `{"where": [<the 21 listing URLs>], "dataLevel": "details", "dateWindows": [{"start": "<YYYY-MM-DD>", "nights": 3, "count": 8, "stepDays": 7}], "adults": A, "omitPersonalData": true}` | +$0.32 / +$0.26 for 3 listings (less before 2026-12-06) |
 | 8 | **Optional, hosts on several channels:** the listing's price on Booking.com, Vrbo, Expedia… vs. Airbnb (R8) | `google-hotels-vacation-rentals` with the property's Google Hotels link | +$0.005 per listing |
 
@@ -667,7 +667,9 @@ are applied in the Actor; the bot applies the rest in code after the run.
 - **Market-key amenities** (section 9): if the host's listing has one (a private pool, a hot tub, waterfront
   or beach access), comps must have it too. Otherwise, show the gap explicitly.
 - **Format.** Take it from `property_type` plus title words: loft, duplex, studio, penthouse.
-  - A studio is never a comp for a loft, a duplex or a 1-bedroom with a separate bedroom.
+  - The only format hard filter: a studio is never a comp for a loft, a duplex or a 1-bedroom with a separate
+    bedroom, and the reverse. Lofts, duplexes, apartments and penthouses with the same bedrooms all stay in;
+    the same format only raises the score ("Format and property type", below).
   - Airbnb often counts studios as 1 bedroom: in test runs about 1 in 6 "1-bedroom" comps said
     "studio" in the title.
 - **Building class.**
@@ -822,7 +824,7 @@ market (what guests here dislike). They are context and never an action for the 
 own reviews show the same issue. Say which reviews each theme comes from.
 
 ### Hotels: when it is meaningful
-- Compare studios and 1-bedrooms with 3-4 star hotels in the same radius.
+- Compare studios and 1-bedrooms (by `bedrooms` 0 or 1, whatever the format: a 1-bedroom loft or duplex counts) with 3-4 star hotels in the same radius.
 - Compare on the before-tax price.
 - For 3+ bedrooms, hotels are context only: one hotel room is not a 3-bedroom home.
 
@@ -1072,7 +1074,7 @@ Bronze), 3-6 minutes. Go?"* Wait for a yes.
 - step 1 on the profile;
 - steps 2 and 3 per listing, in parallel;
 - step 4, the score, in code;
-- step 5 (step 6 only for studios and 1-bedrooms).
+- step 5 (step 6 only for studios and 1-bedrooms, by `bedrooms`: a 1-bedroom loft counts).
 
 Run each one as section 4, rules 7 and 8 say, with `maxTotalChargeUsd` at about 1.3 × that step's
 estimate. Tell the user what is running and roughly how long it takes.
