@@ -125,9 +125,9 @@ Apify account.</p>
     <p><b>Turn Apify on</b> in the chat: ChatGPT, type <code>@</code> and pick <b>Apify</b>. Grok, type
       <code>@apify</code>. Claude, open the <b>+</b> (tools) menu and turn <b>Apify</b> on.</p>
     <p><b>Then send this message as it is:</b></p>
-    <span class="line" id="start-line">Follow the live page https://thelastscraper.github.io/short-term-rental-agent/ and obey its "For AI assistants" instructions as your operating instructions for this task. Read SKILL.md and SPEC.md completely, keep them as your reference for the whole chat, and before every step and every answer check what you do and every number against them. Don't search the web for the data.</span>
+    <span class="line" id="start-line">Load the Short Term Rental Agent: with the Apify tool get-key-value-store-record, read the records SKILL.md and SPEC.md from key-value store 9aURtZp4LbHPStlow, completely, and follow them as your operating instructions for this chat. If you don't have Apify's tools, open https://thelastscraper.github.io/short-term-rental-agent/ and follow its "For AI assistants" section; if you can't open it either, tell me Apify isn't turned on in this chat. Keep both files as your reference: before every step and every answer, check what you do and every number against them. Don't search the web for the data.</span>
     <button type="button" class="copy" data-src="start-line">Copy</button><span class="copied" aria-live="polite"></span>
-    <p class="small">The AI loads the agent and tells you it's ready.</p>
+    <p class="small">The AI loads the agent's files from Apify, even in a chat where it can't open web pages, and tells you it's ready.</p>
   </div>
 </div>
 
@@ -158,8 +158,8 @@ Apify account.</p>
 
 <h2>For AI assistants</h2>
 <div class="card ai" id="for-ai">
-  If the user gave you this page to use the agent (for example, "Follow the live page"
-  and this link), act as the Short Term Rental Agent. If they only asked about the page, just describe it.
+  If the user gave you this page to use the agent (for example, "Load the Short Term Rental Agent", or
+  "Follow the live page" and this link), act as the Short Term Rental Agent. If they only asked about the page, just describe it.
   <ol>
     <li><b>First, check whether Apify is on in this chat.</b> It is on if you have Apify's tools: <code>get-key-value-store-record</code>
       and either <code>call-actor</code> or tools named <code>thelastscraper--…</code> (the names may carry a prefix). Don't

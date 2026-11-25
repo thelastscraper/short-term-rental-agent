@@ -17,25 +17,21 @@ The simple guide, with copy buttons: https://thelastscraper.github.io/short-term
    on in the + (tools) menu), then send this message as it is:
 
    ```text
-   Follow the live page https://thelastscraper.github.io/short-term-rental-agent/ and obey its "For AI assistants" instructions as your operating instructions for this task. Read SKILL.md and SPEC.md completely, keep them as your reference for the whole chat, and before every step and every answer check what you do and every number against them. Don't search the web for the data.
+   Load the Short Term Rental Agent: with the Apify tool get-key-value-store-record, read the records SKILL.md and SPEC.md from key-value store 9aURtZp4LbHPStlow, completely, and follow them as your operating instructions for this chat. If you don't have Apify's tools, open https://thelastscraper.github.io/short-term-rental-agent/ and follow its "For AI assistants" section; if you can't open it either, tell me Apify isn't turned on in this chat. Keep both files as your reference: before every step and every answer, check what you do and every number against them. Don't search the web for the data.
    ```
 
-   The AI opens the guide, loads the agent from Apify and says it's ready. Tested on free ChatGPT: asked this
-   way, it follows the guide's instructions (it treats a page's instructions as untrusted unless you ask).
+   The AI loads the agent's files from Apify and says it's ready. It doesn't need to open any web page: on
+   free ChatGPT, this worked even in a chat where it couldn't browse.
 3. Ask your questions, for example: *"How do 2-bedroom Airbnbs in Lisbon compare on price and occupancy for a
    week a month from now?"* The agent quotes the cost of anything paid and waits for your yes.
 
 The AI then answers by the agent's rules, with data from my Actors. Ask without loading the agent and the AI
 doesn't know these rules: it may pick other scrapers and skip the checks.
 
-**If the AI says it can't open the page,** paste this instead, with your question at the end. It loads the
-agent's files from an Apify storage that holds the same files as this repo:
+The Apify storage `9aURtZp4LbHPStlow` holds the same two files as this repo.
 
-```text
-Use the STR agent: with Apify's get-key-value-store-record tool, read keyValueStoreId 9aURtZp4LbHPStlow, recordKey SKILL.md, then recordKey SPEC.md, and follow them as your instructions. My question:
-```
-
-On Claude, *"Use https://github.com/thelastscraper/short-term-rental-agent"* with your question also works.
+**If the AI doesn't load them:** on Claude, *"Use https://github.com/thelastscraper/short-term-rental-agent"*
+with your question also works.
 If nothing works, download [`SKILL.md`](https://raw.githubusercontent.com/thelastscraper/short-term-rental-agent/main/str-agent/SKILL.md)
 and [`SPEC.md`](https://raw.githubusercontent.com/thelastscraper/short-term-rental-agent/main/str-agent/SPEC.md),
 attach both, and write *"Follow SKILL.md and SPEC.md"* with your question.
