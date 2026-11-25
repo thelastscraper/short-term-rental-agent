@@ -83,7 +83,7 @@ Apify account.</p>
           <b>Add custom MCP server</b>.</li>
         <li>Name: <code>Apify</code>. Connection: <b>Server URL</b>, this address. It loads only this agent's tools; in my
           test, ChatGPT then showed no safety warning:
-          <span class="line" id="chatgpt-url">https://mcp.apify.com/?tools=thelastscraper/airbnb-scraper,thelastscraper/airbnb-listing-details,thelastscraper/airbnb-calendar-occupancy,thelastscraper/airbnb-reviews,thelastscraper/google-hotels-vacation-rentals,get-actor-run,get-dataset-items,get-key-value-store-record,abort-actor-run</span>
+          <span class="line" id="chatgpt-url">https://mcp.apify.com/?tools=thelastscraper/airbnb-scraper,thelastscraper/airbnb-listing-details,thelastscraper/airbnb-calendar-occupancy,thelastscraper/airbnb-reviews,thelastscraper/google-hotels-vacation-rentals,thelastscraper/airbnb-competitor-analysis,get-actor-run,get-dataset-items,get-key-value-store-record,abort-actor-run</span>
           <button type="button" class="copy" data-src="chatgpt-url">Copy</button><span class="copied" aria-live="polite"></span>
           Authentication: <b>OAuth</b>.</li>
         <li>Check <b>I understand and want to continue</b>, then <b>Create as plugin</b>.</li>
@@ -92,6 +92,8 @@ Apify account.</p>
       </ol>
       <p class="small">If you don't see a Plugins page, use Developer mode instead: the steps are in the
         <a href="https://github.com/thelastscraper/short-term-rental-agent#install">README (Install)</a>.</p>
+      <p class="small">Added Apify to ChatGPT before 25 Nov 2026? Remove the Apify plugin and add it again with
+        the address above: it now includes the competitor analysis tool.</p>
     </details>
     <details>
       <summary>Claude (claude.ai or the Claude app)</summary>
@@ -136,7 +138,7 @@ Apify account.</p>
     <p>For example: <i>"How do 2-bedroom Airbnbs in Lisbon compare on price and occupancy for a week a month from now?"</i>
       More examples are below.</p>
     <p>Before anything paid, the agent tells you what it will cost on your Apify account and waits for your yes.
-      A full comparison of 3 listings with their competitors is about $1.22 on Apify's Free plan.</p>
+      Comparing one listing with its 20 closest competitors is $0.38 on Apify's Free plan (up to $0.48 with other weeks), and nothing when fewer than 5 are found.</p>
   </div>
 </div>
 
@@ -192,7 +194,7 @@ Apify account.</p>
           <ul>
             <li>ChatGPT: open <a href="https://chatgpt.com/plugins">https://chatgpt.com/plugins</a>, select <b>Add</b> (top right),
               then <b>Add custom MCP server</b>. Name <code>Apify</code>; Connection <b>Server URL</b>,
-              <code>https://mcp.apify.com/?tools=thelastscraper/airbnb-scraper,thelastscraper/airbnb-listing-details,thelastscraper/airbnb-calendar-occupancy,thelastscraper/airbnb-reviews,thelastscraper/google-hotels-vacation-rentals,get-actor-run,get-dataset-items,get-key-value-store-record,abort-actor-run</code>; Authentication <b>OAuth</b>. Check <b>I understand and want to continue</b>,
+              <code>https://mcp.apify.com/?tools=thelastscraper/airbnb-scraper,thelastscraper/airbnb-listing-details,thelastscraper/airbnb-calendar-occupancy,thelastscraper/airbnb-reviews,thelastscraper/google-hotels-vacation-rentals,thelastscraper/airbnb-competitor-analysis,get-actor-run,get-dataset-items,get-key-value-store-record,abort-actor-run</code>; Authentication <b>OAuth</b>. Check <b>I understand and want to continue</b>,
               select <b>Create as plugin</b>, then sign in to Apify and approve. If there is no Plugins page: Settings →
               Apps &amp; Connectors → Advanced → turn on Developer mode, then Apps &amp; Connectors → <b>Create</b>, with the same
               name, URL and OAuth.</li>
@@ -216,7 +218,7 @@ Apify account.</p>
 </div>
 
 <footer>
-  <p class="small">Agent version <span id="agent-version">2.18, 24 Nov 2026</span>. The same files are on GitHub, on
+  <p class="small">Agent version <span id="agent-version">2.19, 25 Nov 2026</span>. The same files are on GitHub, on
     this site and in Apify.</p>
   <p class="small">Open source (MIT): <a href="https://github.com/thelastscraper/short-term-rental-agent">github.com/thelastscraper/short-term-rental-agent</a>.
     Data from my Apify Actors: <a href="https://apify.com/thelastscraper">apify.com/thelastscraper</a>. They are

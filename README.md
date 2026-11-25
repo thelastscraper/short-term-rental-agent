@@ -111,9 +111,11 @@ Every platform needs the same two things:
 |---|---|---|
 | Claude (claude.ai, Desktop) | Add a **custom connector** by hand (steps below): URL `https://mcp.apify.com` | Upload [`dist/str-agent.zip`](dist/str-agent.zip) as a skill |
 | Claude Code | `claude mcp add apify "https://mcp.apify.com" -t http` | `mkdir -p ~/.claude/skills && cp -r str-agent ~/.claude/skills/` |
-| ChatGPT | [chatgpt.com/plugins](https://chatgpt.com/plugins) → **Add** → **Add custom MCP server**: Name `Apify`, Server URL `https://mcp.apify.com/?tools=thelastscraper/airbnb-scraper,thelastscraper/airbnb-listing-details,thelastscraper/airbnb-calendar-occupancy,thelastscraper/airbnb-reviews,thelastscraper/google-hotels-vacation-rentals,get-actor-run,get-dataset-items,get-key-value-store-record,abort-actor-run` (only this agent's tools; with the full tool set, ChatGPT may show a safety warning), Authentication OAuth → **Create as plugin**; then in each chat type `@` and pick Apify (no Plugins page: Developer mode → Apps & Connectors → Create; beta, depends on your plan) | In a chat where you picked Apify with `@`, send the start message from [Quick start](#quick-start), then your question (free ChatGPT can't open GitHub links, but it opens the guide). Or a Project or GPT: paste `SKILL.md` into the instructions and add `SPEC.md` as a file |
+| ChatGPT | [chatgpt.com/plugins](https://chatgpt.com/plugins) → **Add** → **Add custom MCP server**: Name `Apify`, Server URL `https://mcp.apify.com/?tools=thelastscraper/airbnb-scraper,thelastscraper/airbnb-listing-details,thelastscraper/airbnb-calendar-occupancy,thelastscraper/airbnb-reviews,thelastscraper/google-hotels-vacation-rentals,thelastscraper/airbnb-competitor-analysis,get-actor-run,get-dataset-items,get-key-value-store-record,abort-actor-run` (only this agent's tools; with the full tool set, ChatGPT may show a safety warning), Authentication OAuth → **Create as plugin**; then in each chat type `@` and pick Apify (no Plugins page: Developer mode → Apps & Connectors → Create; beta, depends on your plan) | In a chat where you picked Apify with `@`, send the start message from [Quick start](#quick-start), then your question (free ChatGPT can't open GitHub links, but it opens the guide). Or a Project or GPT: paste `SKILL.md` into the instructions and add `SPEC.md` as a file |
 | Grok | Apify's Grok Bot plugin | Build a template from `SPEC.md` |
 | Any other agent with MCP (Gemini CLI, Cursor, VS Code…) | Add the remote MCP server `https://mcp.apify.com` | Use `SKILL.md` as the system prompt and give it `SPEC.md`. Coding agents read [`AGENTS.md`](AGENTS.md). |
+
+**Added Apify to ChatGPT before 25 Nov 2026?** Remove the Apify plugin and add it again with the Server URL above: it now includes `thelastscraper/airbnb-competitor-analysis`.
 
 ### Claude (claude.ai or Claude Desktop), step by step
 
@@ -166,9 +168,10 @@ mkdir -p ~/.claude/skills && cp -r str-agent ~/.claude/skills/
 
 - **The agent itself is free.**
 - **The data runs on your own Apify account.** Apify includes $5 of free usage every month.
-- **A typical host analysis** (3 listings, 20 comps each) is estimated at about $1.22 on Apify's Free
-  plan (about $0.96 on Bronze, Apify's Starter plan), or about $0.83 for a quick version without the
-  competitors' reviews and the hotels.
+- **A competitor analysis** (one listing vs. its 20 closest comps) costs $0.38 per listing on Apify's
+  Free plan ($0.29 on Bronze, Apify's Starter plan), up to $0.48 when it also scans other weeks, and
+  nothing when fewer than 5 comps are found. Three listings: $1.14 on Free, up to $1.44 if every
+  listing needs the week scan.
 - **The agent quotes the cost** before every paid run and caps it.
 
 Prices per Actor are on their Apify Store pages:
@@ -176,6 +179,7 @@ Prices per Actor are on their Apify Store pages:
 - [Airbnb Listing Details](https://apify.com/thelastscraper/airbnb-listing-details)
 - [Airbnb Occupancy & Revenue](https://apify.com/thelastscraper/airbnb-calendar-occupancy)
 - [Airbnb Reviews](https://apify.com/thelastscraper/airbnb-reviews)
+- [Airbnb Competitor Analysis](https://apify.com/thelastscraper/airbnb-competitor-analysis)
 - [Google Hotels & Vacation Rental Prices vs Airbnb](https://apify.com/thelastscraper/google-hotels-vacation-rentals)
 
 ## Files

@@ -1,7 +1,8 @@
 # STR Agent: build spec (any AI agent: Claude skill, Grok template, ChatGPT and others)
 
-*Version 2.18, 24 Nov 2026. Data: The Last Scraper's Apify Actors (`thelastscraper/*`). Every Actor ID,
-input field, column name, verdict code and price below was checked against the live Actors on 23 Nov 2026.*
+*Version 2.19, 25 Nov 2026. Data: The Last Scraper's Apify Actors (`thelastscraper/*`). Every Actor ID,
+input field, column name, verdict code and price below was checked against the live Actors on 23 Nov 2026;
+those of `airbnb-competitor-analysis`, against its published schemas and code on 25 Nov 2026.*
 
 ---
 
@@ -109,13 +110,16 @@ history and must never pretend to.
      steps with the plain URL):
      1. Open https://chatgpt.com/plugins, select **Add** (top right), then **Add custom MCP server**.
      2. Fill in: Name `Apify`; Connection **Server URL**:
-        `https://mcp.apify.com/?tools=thelastscraper/airbnb-scraper,thelastscraper/airbnb-listing-details,thelastscraper/airbnb-calendar-occupancy,thelastscraper/airbnb-reviews,thelastscraper/google-hotels-vacation-rentals,get-actor-run,get-dataset-items,get-key-value-store-record,abort-actor-run`;
+        `https://mcp.apify.com/?tools=thelastscraper/airbnb-scraper,thelastscraper/airbnb-listing-details,thelastscraper/airbnb-calendar-occupancy,thelastscraper/airbnb-reviews,thelastscraper/google-hotels-vacation-rentals,thelastscraper/airbnb-competitor-analysis,get-actor-run,get-dataset-items,get-key-value-store-record,abort-actor-run`;
         Authentication **OAuth**. No client ID or secret is needed. This URL loads only this agent's tools. In a
         test on 24 Nov 2026, ChatGPT showed no safety warning with it; with the full tool set, ChatGPT may show
         one.
      3. Check **I understand and want to continue**, then select **Create as plugin**.
      4. Sign in to Apify, review the tools and install the plugin.
      5. In each new chat, type `@` and select **Apify**.
+
+     **Added Apify to ChatGPT before 25 Nov 2026?** That URL lacks `thelastscraper/airbnb-competitor-analysis`:
+     remove the Apify plugin and add it again with the URL above.
 
      In Business, Enterprise and Edu workspaces, an admin may need to create the plugin. If your ChatGPT has
      no Plugins page, use the earlier path: turn on Developer mode (Settings → Apps &
@@ -138,7 +142,8 @@ history and must never pretend to.
    - the place, profile URL or listing URLs. Pass a profile URL exactly as given: `/users/show/<id>` and
      `/users/profile/<id>` use different IDs, so never turn one into the other. A company on several channels can also give the Google
      Hotels links of its properties (R8);
-   - dates (default for a host's own listing: a stay when it is free, picked from its calendar, section 7,
+   - dates (default for a host's own listing: a stay when it is free, picked from its calendar; the
+     Competitor Analysis Actor does this itself with `"dates": "auto"`, and the manual recipe in section 7,
      step 0b; otherwise 30 days from today, 5 nights, and if that stay overlaps 20 Dec-3 Jan, use 5 nights
      from 7 Jan instead and say why: holiday weeks distort the comparison);
    - guests (default 2 adults);
@@ -151,9 +156,10 @@ history and must never pretend to.
      new yes. Free calls need no yes: the free count (`dataLevel` "estimate"), reading this agent's files,
      reading run results or an Actor's details, and stopping a run.
    - Quote Free-plan prices unless the user names their Apify plan.
-   - Example: *"This will cost up to about $1.22 on your Apify account (Free plan prices; less on paid
-     plans) and take 3-6 minutes. Go?"*
-   - Always pass `maxTotalChargeUsd` in the run options at about 1.3 × the estimate.
+   - Example: *"Comparing your 3 listings will cost up to $1.44 on your Apify account (Free plan
+     prices; less on paid plans) and take about 2-8 minutes per listing. Go?"*
+   - Always pass `maxTotalChargeUsd` in the run options at about 1.3 × the estimate (with `call-actor`;
+     section 4, rule 7).
 
 ---
 
@@ -187,11 +193,14 @@ history and must never pretend to.
 
      It returns `runId`, `status` and `storages`.
    - **Or start with the Actor's own tool** when your tools include one named `thelastscraper--<name>`
-     (for example `thelastscraper--airbnb-scraper`; ChatGPT's recommended connector in section 3 loads only
-     these, without `call-actor` or `fetch-actor-details`). Pass the section 6 input fields as its
-     arguments, plus `waitSecs`. It starts the same run and returns its status and storage IDs; go on with
-     the steps below. It has no `callOptions`: quote the cost first and keep the recipe's `maxListings` or
-     `maxItems`. Without `fetch-actor-details`, use only the fields this brief lists.
+     (for example `thelastscraper--airbnb-scraper`, or `thelastscraper--airbnb-competitor-analysis` for a
+     host's competitive analysis; ChatGPT's recommended connector in section 3 loads only these, without
+     `call-actor` or `fetch-actor-details`). Pass the input fields of section 6 (section 7 for the
+     Competitor Analysis Actor) as its arguments, plus `waitSecs`. It starts the same run and returns its
+     status and storage IDs; go on with the steps below. It has no `callOptions`: quote the cost first and
+     keep the recipe's `maxListings` or `maxItems` (the Competitor Analysis Actor needs none: one run
+     charges at most one analysis and 8 weeks). Without `fetch-actor-details`, use only the fields this
+     brief lists.
    - **Poll** with `get-actor-run` (`runId`, `waitSecs` up to 45) until the status is final: `SUCCEEDED`,
      `FAILED`, `ABORTED` or `TIMED-OUT`. Its `summary` and `nextStep` are Apify's; the Actor's own verdict
      is in `OUTPUT` (rule 8).
@@ -200,7 +209,8 @@ history and must never pretend to.
      `storages.datasets.calendar.id` (Airbnb reviews and daily calendar rows),
      `storages.datasets.offers.id` (Google Hotels price lists per site).
    - **Read the verdict** with `get-key-value-store-record` (`keyValueStoreId` = the default store,
-     `recordKey` = `"OUTPUT"`).
+     `recordKey` = `"OUTPUT"`). The Competitor Analysis Actor also writes its report there: `recordKey` =
+     `"REPORT_MD"`.
    - **Read the rows** with `get-dataset-items`:
      - `datasetId` = the default dataset, unless the recipe names another;
      - `fields` = a comma-separated string of only the columns needed;
@@ -246,7 +256,8 @@ history and must never pretend to.
 ## 5. The Actors
 
 Prices are per 1,000 events on Apify's Free plan and on the Bronze tier (Apify's Starter plan; Scale =
-Silver, Business = Gold, which pay less). To quote the user's own tier, call `fetch-actor-details` with
+Silver, Business = Gold, which pay less), except `airbnb-competitor-analysis`, whose prices are per event.
+To quote the user's own tier, call `fetch-actor-details` with
 `output: {"pricing": true}` if you have it; it returns `userTier`. Otherwise quote Free-plan prices. There is no start fee.
 
 | Actor | What it gives | Main events (Free / Bronze per 1,000) |
@@ -255,6 +266,7 @@ Silver, Business = Gold, which pay less). To quote the user's own tier, call `fe
 | `thelastscraper/airbnb-listing-details` | Listing pages by URL or ID (price for your dates, fees, taxes, rules, host, amenities, permit) | `listing-details` 1.50/1.30 · `price-quote` 0.50/0.40 (from 2026-12-06) |
 | `thelastscraper/airbnb-reviews` | Review text, ratings and host replies by listing | `review` 0.50/0.40 |
 | `thelastscraper/airbnb-calendar-occupancy` | 12-13 month availability calendars plus occupancy estimates | `listing-details` 1.50/1.30 · `calendar` 1.00/0.75 · `calendar-days` 0.25/0.25 (per 1,000 listing-months of daily rows; on by default here) |
+| `thelastscraper/airbnb-competitor-analysis` | **A host's competitive analysis, one host listing per run:** section 7's whole method in code (dates from the listing's calendar, the host's own listings left out, the comp set, every KPI with its n, section 10's recommendations, other weeks when needed) and a paste-ready report, `REPORT_MD`. Inputs and outputs: section 7, "The Actor flow" | **Per event, not per 1,000:** `analysis` $0.38 / $0.29 (Silver $0.22, Gold $0.17), once per run, only when at least 5 comps pass · `week-scan-week` $0.0125 / $0.010 (Silver $0.0085, Gold $0.007), each other week quoted and answered, at most 8 per run · at most $0.48 / $0.37 per run, charged last, after delivery |
 | `thelastscraper/google-hotels-vacation-rentals` | Google Hotels: hotels (star class, all-in and before-tax prices), Google vacation rentals (bedrooms and the booking sites listing each: Vrbo, Booking.com, Expedia…), optional Airbnb side by side, a free comparison by segment, and **each property's price on every booking site** (`includeOffers`, or a property link in `where`) | `hotel` 1.00/0.90 · `rental` 1.00/0.90 · `airbnb-listing` 1.00/0.60 · `offers` 4.00/3.50 (one property's price list per booking site) |
 
 ### `airbnb-scraper` data levels (`dataLevel`)
@@ -396,7 +408,8 @@ Fill every `<…>`. Dates are `YYYY-MM-DD`; without dates from the user, use sec
 days from today, 5 nights, moved past the 20 Dec-3 Jan holidays). Every Airbnb recipe also gets `checkIn`/`checkOut`,
 `currency` and `"omitPersonalData": true`, even where its JSON below leaves them out; `airbnb-reviews` takes only
 `omitPersonalData`. Every Airbnb recipe at `revenue`, `everything` or `leads` carries
-`"marketReport": "off"`.
+`"marketReport": "off"`. `airbnb-competitor-analysis` is the exception: it takes only its own fields
+(section 7, "The Actor flow").
 
 ### R1. Quick market look (a place, dates)
 
@@ -429,7 +442,9 @@ the nights.
 
 ### R3. Host competitive analysis (the flagship flow, section 7)
 
-Steps and inputs are in section 7.
+One `thelastscraper/airbnb-competitor-analysis` run per host listing, after one quote and the user's yes
+(section 7, "The Actor flow"). Only when that Actor's tool is not in the chat, use section 7's manual
+recipe (steps 0b-8).
 
 ### R4. A listing's future prices (weekly check, hot dates)
 
@@ -551,19 +566,20 @@ Report shares: *"64% of Google-listed rentals here are on Vrbo"*.
    listing (H as in section 7, step 3).
 4. **Flag the outliers**, with the definitions of section 10's recommendation rules:
    - price at or above the comps' 75th percentile and rating below their median;
-   - price at or below the 25th percentile, rating above the median and occupancy at the top of the
-     range;
+   - price at or below the 25th percentile, with the low end of the occupancy range at least 10 points
+     above the comps' 75th percentile of it ("room to raise", whatever the rating);
    - occupancy at the bottom of the range.
 
    A listing with no price for the dates gets no price flag. Say how many there are, and don't run
    step 7 for them during triage.
 5. **The full section 7 analysis** for the 5 listings with the most flags only, unless the user asks
-   for more.
+   for more: one Competitor Analysis run per listing.
 
 **Cost (estimate, Free plan):**
 - step 1: about $0.0025 per host listing (`listing-details` plus `calendar`);
 - step 3: about $0.11-0.15 per host listing (its 30 + H candidate comps at $0.0035 each);
-- step 5: about $0.41 per host listing analyzed, its comps included (section 7, Standard, ÷ 3).
+- step 5: up to $0.48 per host listing analyzed with the Competitor Analysis Actor, its comps included
+  (about $0.41 with the manual recipe: section 7, Standard, ÷ 3).
 - 50 listings, steps 1-4: about $5.60-7.60. That is above Apify's $5 free monthly usage, so say so and
   mention Apify's paid plans.
 
@@ -588,15 +604,128 @@ Report shares: *"64% of Google-listed rentals here are on Vrbo"*.
 **Goal:** for each of the host's listings, find 15-20 truly comparable Airbnb listings and nearby hotels
 (only where meaningful). Then show where the listing stands and what to change.
 
-### Steps
+**Use the Competitor Analysis Actor.** For a host's competitive analysis ("compare my listing", "who are my
+competitors", "am I priced right"), call `thelastscraper/airbnb-competitor-analysis` once per host listing.
+It runs this section's whole method in code, in one run: the dates, the host's own listings, the comp set,
+the KPIs, section 10's recommendations and the week scan. The manual recipe further down ("Manual recipe:
+steps") is only the fallback, when the Actor's tool is not in the chat, and the reference for how the Actor
+works.
+
+### The Actor flow
+
+**The tool.** `thelastscraper--airbnb-competitor-analysis` (ChatGPT's restricted connector, section 3), or
+`call-actor` with `"actor": "thelastscraper/airbnb-competitor-analysis"` elsewhere. If the chat has
+neither, use the manual recipe and tell the user once, in one line, how to get the tool: on ChatGPT,
+remove the Apify plugin and add it again with section 3's URL, which now includes it.
+
+**Steps:**
+1. **Intake:** the listing URLs, or the profile URL exactly as the user gives it; dates only if the user
+   gives them; adults (default 2); currency (default USD).
+2. **Free count, only with a profile URL:** `airbnb-scraper` with `{"where": ["<profile URL>"],
+   "dataLevel": "estimate"}` (section 15, step 2). $0, no yes needed.
+3. **ONE quote** for the whole request, in one message that ends with a yes/no question (section 3, step 5):
+   *"up to $0.48 per listing on the Free plan ($0.38 analysis + up to 8 weeks × $0.0125); nothing if fewer
+   than 5 comps"*, times the number of listings. With the user's plan, use its prices: at most $0.37 per
+   listing on Bronze ($0.29 + 8 × $0.010), $0.29 on Silver ($0.22 + 8 × $0.0085), $0.23 on Gold ($0.17 +
+   8 × $0.007). When the user gave a profile and no listing URLs, add the list of the profile's listings
+   (about $0.015 for 10 listings, "Only some of the host's listings?" below). Each run takes about 2-8
+   minutes; the runs go in parallel. The cost is per host listing, its ~20 comps included: never multiply
+   it by the comps.
+4. **The yes.** No paid run before it. The yes covers only what was quoted.
+5. **The profile's listings** (only when you need their URLs): the `snapshot` run of "Only some of the
+   host's listings?" below. Take each listing's `url` from its row.
+6. **One run per host listing:**
+
+   ```json
+   {"listing": "https://www.airbnb.com/rooms/1234567890123456789", "dates": "auto", "adults": 2,
+    "currency": "USD", "weekScan": "if_needed"}
+   ```
+
+   - `listing` (required): ONE listing URL, or its ID as text (`"1234567890123456789"`, never a JSON
+     number). Never a profile.
+   - `hostProfileUrl` (optional): the profile URL the user gave, exactly as given. The listing's own host
+     is always read and left out, so this matters when the profile is a second account or a co-host's.
+   - `excludeListings` (optional): the user's listings on other accounts or that they co-host, as URLs or
+     IDs as text. They are left out of the comps too.
+   - `dates`: `"auto"` (the default) unless the user gave dates: the Actor reads the listing's calendar and
+     picks a stay it can sell (as in the manual recipe's step 0b, with 5, then 4, then 3 nights). With the
+     user's dates: `"explicit"` with `checkIn` and `checkOut` (YYYY-MM-DD).
+   - `adults` (default 2) and `currency` (default `"USD"`).
+   - `weekScan`: `"if_needed"` (the default, and the one quoted): when the listing or fewer than 5 comps
+     have a price, the same run quotes up to 8 other weeks. `"off"`: the scan is only offered in `missing`.
+   - No other field: no `omitPersonalData` (the Actor always leaves personal data out), no `maxListings`.
+   - With `call-actor`: `"callOptions": {"maxTotalChargeUsd": 0.62, "timeout": 900}` (1.3 × the Free-plan
+     maximum). A cap under $0.48 scans fewer weeks; under the analysis price, the run stops before any
+     request (`spending_cap`).
+   - If Apify refuses a run for the account's memory limit, start it when another run finishes.
+7. **Wait and read** (section 4, rule 7): `get-actor-run` until the status is final; then
+   `get-key-value-store-record` on the run's default store, `recordKey` `"OUTPUT"`, then `"REPORT_MD"`.
+   Act on `OUTPUT.verdictCode` (section 12). Read `OUTPUT` even when the status is `FAILED`: it says why
+   and what was charged.
+8. **Present `REPORT_MD`**, starting with the dates used and why (`OUTPUT.dates.reason`). Keep every
+   number as the report gives it: prices, percentiles, ranges, counts, each n and each recommendation.
+   Translate the wording into the user's language if needed; never round, recompute, re-rank or add a
+   price recommendation of your own. With several listings, lead with the portfolio view (section 10),
+   copying each listing's numbers from its run's `OUTPUT`.
+9. **Then offer `OUTPUT.missing`**, each item with its cost (`costUsd`, Free and Bronze), as a question.
+   Each `how` starts "Ask the user first": every item needs its own quote and yes. For studios and
+   1-bedrooms, `OUTPUT.hotels.recipe` is the exact Google Hotels input (about $0.03); the Actor does not
+   run it.
+
+**`OUTPUT`** (default key-value store):
+- `verdictCode`, `summary`, `complete` and `nextStep` (section 12); `inputNotes` (ignored or renamed
+  input fields);
+- `dates`: `checkIn`, `checkOut`, `nights`, `chosenBy` (`host_calendar`, `host_calendar_unpriced`,
+  `calendar_full`, `calendar_unreadable` or `user`) and `reason`, the sentence that says why;
+- `subject`: the host listing, with `requiredOfComps` (the amenities every comp must have) and `poolKind`;
+- `compSet`: `n`, `nPriced`, `nUnpriced`, `nBookedOrBlocked`, `nStayRule`, `belowTen`, `belowFive`;
+- `excluded`: `ownListingsNearby`, `byReason` (how many candidates each filter left out) and
+  `amenityFilters` (what each hard amenity cost in comps);
+- `search`: `radiusKmUsed`, `doubledByCount`, `widenedAfterFilters` and `relaxed` (the hard amenities
+  turned into score factors, in order, with how many each removed);
+- `headline` (the finding in one line) and `kpis`: `price`, `occupancy90`, `reviewVelocity`, `rating`,
+  `demand`, `amenityGaps`, `hostLacks`, `photos`, `friction`, `badges`, each with its `n`;
+- `recommendations`: up to 4, each with its `text`, the `numbers` behind it and its `n` (section 10's
+  rules; factual "keep" lines fill up to 2 when fewer rules fire). With fewer than 5 comps, `kpis` is
+  null and there are no recommendations;
+- `weekScan`: `status`, `reason` and a `table` per week (percentile only where the listing and 5+ comps
+  have a price);
+- `hotels`: for studios and 1-bedrooms, the Google Hotels `recipe` and its cost, not run;
+- `missing`: what the analysis leaves out (hotels, other weeks when not scanned, channel prices, review
+  themes, hot dates, orphan nights, fee load), each with `costUsd` and "Ask the user first";
+- `charged`: exactly what the run charged: `analysis`, `weekScanWeeks`, `totalUsd`.
+
+A run that stops before the analysis (`invalid_input`, `listings_gone`, `hotel_listing`… in section 12)
+writes only the verdict fields, `inputNotes` and `charged` (sometimes `steps`, `dates` or `subject`).
+
+**`REPORT_MD`** (same store): the report in English, every listing named and linked, every number with its
+n, ending with what is not in the analysis yet and its cost, and what was charged.
+
+**Datasets** (read them only when the user asks for detail; section 4, rule 6): the default dataset has
+one row for the host listing (`record_type` `subject`, `rank` 0) and one per comp (`rank`, `listing_id`,
+`title`, `url`, `score` and its factors, `distance_km`, `price_per_night_before_taxes`, `availability`,
+`est_occupancy_calendar_adjusted_90`, `est_occupancy_calendar_90`, `rating`, `review_count`…);
+`candidates` has every candidate with its `excluded_reason`; `weeks` has the week scan, keyed by
+`listing_id` and `check_in`.
+
+**Prices** (pay-per-event, section 5): `analysis` $0.38 Free / $0.29 Bronze / $0.22 Silver / $0.17 Gold,
+once per run and only with at least 5 comps; `week-scan-week` $0.0125 / $0.010 / $0.0085 / $0.007, at most
+8 per run, only for weeks Airbnb answered. At most $0.48 per run on the Free plan. The charges come last,
+after delivery: a failed or aborted run is not charged.
+
+### Manual recipe: steps (fallback, and the method reference)
+
+Run these steps only when the Competitor Analysis Actor's tool is not in the chat (above). They, and the
+rest of this section, are also the method the Actor runs in code: use them to explain how a comp set was
+built.
 
 | # | What | Actor and input | Typical cost (Free / Bronze) |
 |---|---|---|---|
 | 0 | **Intake:** the profile URL exactly as the user gives it, `https://www.airbnb.com/users/show/<id>` or `https://www.airbnb.com/users/profile/<id>` (or listing URLs), currency, optional dates and guests. Confirm the cost after the free count of the host's listings (section 15, step 2). | — | $0 |
-| 0b | **Pick the dates from the host's calendar** (only when the user gave no dates) | `airbnb-calendar-occupancy`: `{"where": ["<the profile URL, or the chosen listings' URLs>"], "maxListingsPerHost": 0, "calendarMonths": "12", "calendarDays": true, "checkIn": …, "checkOut": …, "omitPersonalData": true}` (pass the section 3 default dates; they only set this run's own quote). From its daily rows (`calendar` dataset), pick in code the stay of N nights (5, or the check-in day's `min_nights` if higher), with a check-in within the next 90 days and nearest to today + 30 days (the earlier one on a tie), where every night is `available`, the check-in day is `available_for_checkin`, the check-out day (the day after the last night) is `available_for_checkout`, and no night falls in 20 Dec-3 Jan. With several host listings, pick one stay when all of them are free (same rule); if there is none, give each listing its own stay and run step 1 once per date pair, with those listings' URLs. Use those dates for every later step, and say which dates you chose and why. If no stay exists, say the calendar is full for the next 90 days, use the section 3 default dates, and offer the scan of other weeks. | ~$0.0055 per host listing |
+| 0b | **Pick the dates from the host's calendar** (only when the user gave no dates) | `airbnb-calendar-occupancy`: `{"where": ["<the profile URL, or the chosen listings' URLs>"], "maxListingsPerHost": 0, "calendarMonths": "12", "calendarDays": true, "checkIn": …, "checkOut": …, "omitPersonalData": true}` (pass the section 3 default dates; they only set this run's own quote). From its daily rows (`calendar` dataset), pick in code the stay of N nights (try N = 5 first, then 4, then 3, never fewer; a stay is N nights, or the check-in day's `min_nights` if higher), with a check-in within the next 90 days and nearest to today + 30 days (the earlier one on a tie), where every night is `available`, the check-in day is `available_for_checkin`, the check-out day (the day after the last night) is `available_for_checkout`, and no night falls in 20 Dec-3 Jan. With several host listings, pick one stay when all of them are free (same rule); if there is none, give each listing its own stay and run step 1 once per date pair, with those listings' URLs. Use those dates for every later step, and say which dates you chose and why. If no stay exists, say the calendar is full for the next 90 days, use the section 3 default dates, and offer the scan of other weeks. | ~$0.0055 per host listing |
 | 1 | **The host's listings**, with everything needed | `airbnb-scraper`: `{"where": ["<profile URL>"], "dataLevel": "everything", "maxReviewPages": 2, "photos": "full", "hostProfile": "full", "calendarDays": true, "marketReport": "off", "omitPersonalData": true, "checkIn": …, "checkOut": …, "adults": A, "currency": "USD", "maxListingsPerHost": 20}`. Their reviews are in the `reviews` dataset and their daily calendar rows in the `calendar` dataset (columns as in R7). | ~$0.17 / $0.14 for 3 listings |
 | 2 | **Size the radius** per listing (free counts) | `airbnb-scraper`: `{"bbox": <box of radius R, below>, "dataLevel": "estimate", "bedroomsExact": N, "minBathrooms": B - 0.5, "roomTypes": ["Entire home/apt"], "amenities": [<same as step 3>], "adults": A, "checkIn": …, "checkOut": …}`, with **no `where`** (section 4, rule 11). About 20-25 s. Read `estimate.listings_estimated`; the count of booked listings is "at least" (section 5). | $0 |
-| 3 | **Comp candidates** per listing | `airbnb-scraper`: `{"bbox": <the same box>, "distanceFrom": {"lat": …, "lng": …}, "maxDistanceKm": R, "bedroomsExact": N, "minBathrooms": B - 0.5, "roomTypes": ["Entire home/apt"], "excludeHotels": true, "amenities": [<filter values the listing advertises; omit if none>], "adults": A, "checkIn": …, "checkOut": …, "coverage": "all", "dataLevel": "leads", "maxListings": 60 + H, "marketReport": "off", "omitPersonalData": true, "currency": "USD"}`, with **no `where`**. `amenities` takes only the Actor's filter values (section 5), e.g. `["Pool", "Gym"]`: non-matching listings are dropped before charge. Check the pool kind (shared/private), views and security in code. The run keeps the nearest listings (at `leads` the rows are ordered by lead score: sort on `distance_km` in code) and takes about 1 minute per listing. | up to ~$0.66 / $0.50 for 3 × 63 (H = 3) |
+| 3 | **Comp candidates** per listing | `airbnb-scraper`: `{"bbox": <the same box>, "distanceFrom": {"lat": …, "lng": …}, "maxDistanceKm": R, "bedroomsExact": N, "minBathrooms": B - 0.5, "roomTypes": ["Entire home/apt"], "excludeHotels": true, "amenities": [<filter values the listing advertises; omit if none>], "adults": A, "checkIn": …, "checkOut": …, "coverage": "all", "dataLevel": "leads", "maxListings": 60 + H, "marketReport": "off", "omitPersonalData": true, "currency": "USD"}`, with **no `where`**. `amenities` takes only the Actor's filter values (section 5), e.g. `["Pool", "Gym"]`: non-matching listings are dropped before charge. Check the pool kind (shared/private) in code; views and security only add to the score. The run keeps the nearest listings (at `leads` the rows are ordered by lead score: sort on `distance_km` in code) and takes about 1 minute per listing. | up to ~$0.66 / $0.50 for 3 × 63 (H = 3) |
 | 4 | **Score and select** the comp set (below), in code | — | $0 |
 | 5 | **Comps' reviews:** themes, last 12 months, the 10 newest per comp | `airbnb-reviews`: R5 with the comp set's IDs and `"maxReviewsPerListing": 10` | ~$0.30 / $0.24 (3 × 20 × 10 reviews) |
 | 6 | **Hotels**, only for studios and 1-bedrooms (by `bedrooms` 0 or 1, whatever the format: a 1-bedroom loft or duplex counts) | `google-hotels-vacation-rentals`: `{"where": ["<city>"], "sources": ["hotels"], "hotelStarClasses": ["3", "4"], "checkIn": …, "checkOut": …, "adults": 2, "areaFilter": {"lat": …, "lng": …, "radiusKm": 3}, "maxItemsPerSource": 15, "outputFormat": "compact", "currency": "USD"}` (15 per star class: up to 30 hotels) | ~$0.09 / $0.08 for 3 listings |
@@ -618,6 +747,8 @@ Report shares: *"64% of Google-listed rentals here are on Vrbo"*.
 profile. First list all of them cheaply: `airbnb-scraper` with `{"where": ["<profile URL>"], "dataLevel":
 "snapshot", "maxListingsPerHost": 0, "omitPersonalData": true, "checkIn": …, "checkOut": …, "currency": "USD"}`
 (about $0.015 for 10 listings on the Free plan). Quote it together with the analysis, so the user says yes once. Then run step 1 with only the chosen listings' URLs.
+With the Competitor Analysis Actor, this list is how a profile becomes listing URLs: run it, then one
+Actor run per chosen listing, with its row's `url` in `listing`.
 Every listing in that snapshot still leaves the comps, by `listing_id` (snapshot rows may have no `host_id`;
 take it from step 1's rows), and H counts them by `lat`/`lng`.
 
@@ -625,13 +756,21 @@ take it from step 1's rows), and H counts them by `lat`/`lng`.
 
 | Version | Free | Bronze | Time |
 |---|---|---|---|
-| Standard (steps 1-6) | about $1.22 | about $0.96 | 3-6 min |
-| With the price curve and channel prices (steps 1-8) | about $1.55 | about $1.23 | — |
-| Express (steps 1-4 only: no comp reviews, no hotels) | about $0.83 | about $0.64 | — |
+| **Competitor Analysis Actor** (one run per listing; the default): no hotels and no review texts, offered from `missing` | up to $1.44 ($1.14 when no week scan is needed) | up to $1.11 ($0.87) | about 2-8 min per run, in parallel |
+| Manual, Standard (steps 1-6) | about $1.22 | about $0.96 | 3-6 min |
+| Manual, with the price curve and channel prices (steps 1-8) | about $1.55 | about $1.23 | — |
+| Manual, Express (steps 1-4 only: no comp reviews, no hotels) | about $0.83 | about $0.64 | — |
 
-**Per host listing analyzed:** about $0.41 (Standard) or $0.28 (Express) on the Free plan, with its ~20 comps
-already included. These costs are per host listing, never per comp: do not multiply them by the number of comps.
-When step 0b picks the dates from the host's calendar, add about $0.0055 per host listing.
+With a profile URL and no listing URLs, add the list of the profile's listings (about $0.015 for 10
+listings, below).
+
+**Per host listing analyzed**, with its ~20 comps already included:
+- **Competitor Analysis Actor:** up to $0.48 on the Free plan ($0.38 analysis + up to 8 weeks × $0.0125),
+  $0.37 on Bronze, $0.29 on Silver, $0.23 on Gold; nothing when fewer than 5 comps pass.
+- **Manual recipe:** about $0.41 (Standard) or $0.28 (Express) on the Free plan. When step 0b picks the
+  dates from the host's calendar, add about $0.0055 per host listing.
+
+These costs are per host listing, never per comp: do not multiply them by the number of comps.
 
 **Order:** 0b (only without dates from the user) → 1 → 2 → 3 → 4 → 5, 6 and 8 → 7 (only if the user wants it). Run the listings' steps 2-3, and
 steps 5, 6 and 8, in parallel. If Apify rejects a run for the account's memory limit, start it when
@@ -640,7 +779,8 @@ section 12 before the next step.
 
 ### Comp set: hard filters
 
-A candidate that fails any hard filter never enters the comp set, whatever its score. Having no price for
+A candidate that fails any hard filter never enters the comp set, whatever its score (a hard amenity
+relaxed because fewer than 10 comps pass stops being a filter: "Keep the 20 highest scores"). Having no price for
 the dates (booked or blocked) is not a hard filter: such comps stay in the comp set and in every non-price
 KPI, and only drop out of the price KPIs. Some hard filters
 are applied in the Actor; the bot applies the rest in code after the run.
@@ -651,10 +791,16 @@ are applied in the Actor; the bot applies the rest in code after the run.
 - **Distance:** inside R (steps 2-3).
 - **What the listing sells is mandatory.**
   - Read the host listing's **title** and `key_amenities` for what it advertises: pool, gym, hot tub,
-    security or doorman, view, parking.
-  - Comps must have each of those that Airbnb lists as an amenity (in `key_amenities` / `has_*`: pool, gym, hot
-    tub, parking, a view such as "Sea view" / `has_sea_view`). A comp without one is out of the core set. It may appear in a separate "without X" contrast
-    group.
+    parking, beach access, security or doorman, a view.
+  - Comps must have each of these that the listing sells: pool, gym, hot tub, parking (free or paid;
+    when the listing has free parking, the search filter `"Free parking"` keeps only comps with free
+    parking) and beach access, from their `key_amenities` / `has_*`. A comp without one is out of the core set. It may
+    appear in a separate "without X" contrast group. With fewer than 10 comps, these are relaxed one at a
+    time ("Keep the 20 highest scores", below).
+  - **Views are never hard filters:** sea, city, marina and every other view (`*_view`, `has_sea_view`),
+    and waterfront and beachfront. Hosts report them unevenly. They only add to the score (key-amenity
+    overlap, below): a comp that has the listing's view scores higher; one without it stays in. In live
+    tests, views used as filters left beach listings with far fewer than 10 comps; without them, 20.
   - Features that only titles show, because the comps' amenity data can't confirm them (for example 24/7
     security or a concierge), are never hard filters: many comps have them without saying so. They add to the
     score (key-amenity overlap, below), and the report marks which comps advertise them.
@@ -663,9 +809,10 @@ are applied in the Actor; the bot applies the rest in code after the run.
     - private pool ↔ private pool;
     - a comp with plain `Pool` (unknown kind) stays in, flagged "pool kind unknown".
   - Example: a Dubai Marina 2-bedroom whose title advertises "sea view, pool, gym" → comps need a shared
-    pool and a gym, and the sea view is a market-key amenity (section 9).
-- **Market-key amenities** (section 9): if the host's listing has one (a private pool, a hot tub, waterfront
-  or beach access), comps must have it too. Otherwise, show the gap explicitly.
+    pool and a gym; the sea view only raises the score of comps that have it.
+- **Market-key amenities** (section 9): if the host's listing has one that is a hard filter (a private
+  pool, a hot tub or beach access), comps must have it too. Waterfront, beachfront and views only add to the
+  score. Otherwise, show the gap explicitly.
 - **Format.** Take it from `property_type` plus title words: loft, duplex, studio, penthouse.
   - The only format hard filter: a studio is never a comp for a loft, a duplex or a 1-bedroom with a separate
     bedroom, and the reverse. Lofts, duplexes, apartments and penthouses with the same bedrooms all stay in;
@@ -676,6 +823,7 @@ are applied in the Actor; the bot applies the rest in code after the run.
   - An **amenity building** has a shared pool and a gym, often with security or a concierge in the title.
     Other buildings are a different class.
   - Comps come from the same class as the host's listing. It is inferred, so call it "probable".
+  - Relaxing the pool or the gym (below) relaxes the building class too.
 
 ### Comp set: similarity score (in code, never "by eye")
 
@@ -684,7 +832,7 @@ Score each candidate that passed every hard filter from 0 to 1. Weights:
 | Factor | Weight | How |
 |---|---|---|
 | Distance | 0.20 | 1 up to 0.3 km; then falls linearly to 0 at R: 1 − (`distance_km` − 0.3) ÷ (R − 0.3) |
-| Key-amenity overlap | 0.20 | Jaccard (in both ÷ in either) on the market-key amenities, from `key_amenities` / `has_*`, plus the title-only features the host advertises (for example 24/7 security or a concierge); 1 when neither has any |
+| Key-amenity overlap | 0.20 | Jaccard (in both ÷ in either) on the market-key amenities (pool, hot tub, gym, air conditioning, dishwasher, elevator), from `key_amenities` / `has_*`, plus the title-only features the host advertises (for example 24/7 security or a concierge), plus the listing's own views, waterfront or beachfront and any relaxed hard amenity (a comp matches one in its amenities or its title; a comp's other views never lower the score); 1 when neither has any |
 | Format and property type | 0.15 | Same format (loft, duplex, studio, separate bedroom) = 1, else 0 |
 | Quality tier | 0.15 | 0.5 for the same rating band (under 4.5, 4.5-4.79, 4.8 and up) + 0.5 for the same `review_count` band (under 10, 10-49, 50 and up) |
 | Guest capacity | 0.10 | Same `guests` = 1, ±1 = 0.5, ±2 = 0 |
@@ -713,6 +861,10 @@ Score each candidate that passed every hard filter from 0 to 1. Weights:
     were left out of the comparison."*
 - At most **2 listings per `host_id`** in the comp set. Management companies often hold several units in
   one building.
+- At most **2 listings per identical title**, whatever the host, by the normalized title: lowercase, a
+  trailing number such as "#2", "(3)" or " 2" removed, punctuation and spaces collapsed. Identical units
+  listed under one title, on several accounts, would otherwise fill the comp set. This is a cap, not
+  duplicate merging: the comps kept stay separate.
 - Same `host_id`, same price and same building means **"possible duplicate or twin unit"**. Count it once
   in medians and keep the one with more reviews.
 - Different hosts with the same price in one building are not duplicates: keep both.
@@ -731,6 +883,12 @@ the same comp usually has a price in other weeks, and a nearer comp beats a fart
 This is common in busy weeks: most comps are booked or blocked, so few have a price. In test runs, 40-56% of
 comps had no price for the dates (section 5). The comp set is still valid. Only the price
 comparison for those dates is thin.
+
+**With the Competitor Analysis Actor,** `"weekScan": "if_needed"` does step 2 inside the same run, on up
+to 8 weeks (same weekday and nights) where the listing's calendar and at least 5 comps' calendars are free,
+and `REPORT_MD` puts point 1 before its scorecard. Present it. If the scan could not run (`OUTPUT.weekScan.status`
+`offered`, `no_eligible_window`, `partial` or `failed`), `OUTPUT.missing` offers the next step with its
+cost. The steps below are for the manual recipe.
 
 **1. Say it first, in this order, before any other finding:**
 - **The count:** *"Only 3 of your 20 comps have a price for your dates: 15 are booked or blocked on those
@@ -761,8 +919,9 @@ step:**
    the stay length. A stay outside a comp's limits comes back as "DATE" with "Minimum stay is N nights"
    (or "Maximum stay …"): a rule, not a booking.
 3. **More comps, only if the comp set itself is short:** if fewer than 10 comps passed the hard filters
-   (counting those with no price) and R has not been doubled yet, double it once (section 7, "Keep the 20
-   highest scores"). Never relax a hard filter or widen R just to get more prices.
+   (counting those with no price), relax the hard amenities one at a time first, then, if R has not been
+   doubled yet, double it once (section 7, "Keep the 20 highest scores"). Never relax a hard filter or
+   widen R just to get more prices.
 4. **The user's own flexibility:** ask which other dates they care about, and run explicit stays
    (`{"checkIn": "…", "checkOut": "…"}`).
 
@@ -794,9 +953,19 @@ the dates), run step 7's `dateWindows` on it and its comps (about +$0.11 per hos
 quote it first) and compare on the weeks where it is free, or say its price can't be compared for these
 dates. Never treat an empty price as 0.
 
-- Keep the 20 highest scores, with a minimum of 10.
-- With fewer than 10 after the hard filters, counting comps with and without a price, double R once and run
-  steps 2-4 again for that listing (step 3 is paid: quote it and wait for a yes first, section 3, step 5).
+- Keep the 20 highest scores, with a minimum of 10 (after the 2-per-host and 2-per-title caps).
+- With fewer than 10 after the hard filters and the caps, counting comps with and without a price, **relax
+  before widening:**
+  1. Among the candidates that pass every other hard filter, find the hard amenity (pool, gym, hot tub,
+     parking, beach access) that the most of them lack. It becomes score-only: it no longer excludes, and a
+     comp that has it scores higher (key-amenity overlap). The pool goes last, whatever it removes.
+  2. Select again. Repeat, one amenity at a time, until 10 comps pass or no hard amenity left removes any.
+  3. Never relaxed: the host's own listings, the room type, bedrooms, bathrooms, guests and the studio rule.
+  4. Say what was relaxed, in order, with how many each removed: *"Relaxed: parking (removed 9) → 12
+     comps."*
+- Only if there are still fewer than 10, and step 2's count has not doubled R already, double R once and run
+  steps 2-4 again for that listing, without the relaxed amenities in `amenities` (step 3 is paid: quote it and
+  wait for a yes first, section 3, step 5; the Actor's widening is included in its price).
   Never widen R because few comps have a price: get prices for other weeks instead ("When few comps have a
   price"). If
   there are still fewer than 10, go on and say so first (section 11, rule 10). Never silently compare
@@ -908,7 +1077,13 @@ Top 3 actions:
 3. …
 ```
 
+With the Competitor Analysis Actor, copy each listing's numbers from its run's `OUTPUT` (`kpis.price.percentile`,
+`kpis.occupancy90`, `kpis.rating`, `headline`, `recommendations`), each with its n; never recompute them.
+
 ### Per-listing scorecard
+
+With the Competitor Analysis Actor, the scorecard is the run's `REPORT_MD`: present it as section 7, "The
+Actor flow", says.
 
 The headline is the finding, e.g. "Overpriced for what guests get". It covers:
 - price (percentile and per-guest);
@@ -932,7 +1107,8 @@ Not in this analysis yet:
   free and most comps have a price? About $0.11.
 ```
 
-Never leave a gap without offering how to fill it.
+Never leave a gap without offering how to fill it. With the Competitor Analysis Actor, this block is
+`OUTPUT.missing`, also at the end of `REPORT_MD`: offer its items with their costs as they are.
 
 ### Recommendation rules (deterministic)
 
@@ -940,22 +1116,44 @@ Never leave a gap without offering how to fill it.
 above the comps' 75th percentile; "at the bottom", at or below their 25th. Percentiles and medians are
 the comp set's.
 
+The occupancy-based price rules compare the ends of the ranges: the low end is
+`est_occupancy_calendar_adjusted_90`, the high end `est_occupancy_calendar_90`, and the comps' quartiles and
+medians are taken on each end. Each needs a gap of at least 10 points; under it, the rule does not apply.
+Like every price rule, they need a price percentile, so at least 5 priced comps. These are the rules the
+Competitor Analysis Actor applies, in this order, with at most 4 recommendations.
+
 - **No price recommendation from fewer than 5 priced comps**, except the demand rule below.
 - **At least 70% of the comps are booked or blocked for the dates (`unavailable_reason` "DATE" with "Those
   dates are not available", as in section 7's KPI), the comp set
   has at least 5 listings (section 11, rule 10), and the host's listing is still free:**
   "demand is high for these dates: hold your price or test a small increase". Give the share with its n
   (e.g. 15 of 20). It is a signal, not proof: "booked or blocked" (section 11, rule 1).
+- **Premium backed by demand:** price at or above the 75th percentile, the low end of the host's occupancy
+  at least 10 points above the comps' 75th percentile of the high end, and rating at or above the comps'
+  median: "your premium is backed by demand: hold the price; test a small increase on your busiest dates".
+- **Priced high for the demand you get:** price at or above the 75th percentile and the high end of the
+  host's occupancy at least 10 points below the comps' median of the low end, whatever the rating:
+  "priced high for the demand you get: test a lower price".
 - **Price at or above the 75th percentile and rating below the comps' median:** "lower the price or fix
-  <top complaint from the host's own reviews>".
-- **Price at or below the 25th percentile, rating above the median and occupancy at the top of the
-  range:** "room to raise the price".
-- **Orphan nights above zero and `min_nights` above the comps' mode:** "lower the minimum on those nights".
-- **A key amenity missing and the premium holds:** "consider adding it (association, not a guarantee)".
-- **`photo_count` below the comps' median:** "add photos".
+  <top complaint from the host's own reviews>". The Actor reads no review text: it names the host's lowest
+  sub-rating instead.
+- **Room to raise:** price at or below the 25th percentile and the low end of the host's occupancy at least
+  10 points above the comps' 75th percentile of the low end, whatever the rating: "room to raise the price:
+  you are X% under the median with Y× the comps' occupancy; test a 10-15% increase". If the rating is
+  below the comps' median, add "raise gradually: your rating is below the comps' median".
+- **Orphan nights above zero and `min_nights` above the comps' mode:** "lower the minimum on those nights"
+  (manual recipe only; the Actor offers orphan nights in `missing`).
+- **A key amenity missing and the premium holds** (section 9's rule on the comp set): "consider adding it
+  (association, not a guarantee)".
+- **`photo_count` below the comps' 25th percentile, or at most 80% of their median:** "add photos".
 - **Instant book off (`instant_book` false, not empty) while more than half of the comps with a known
   value have it on:** "turn on Instant Book". `instant_book` is empty for listings with no price for the
   dates.
+
+When fewer than 2 rules apply (with at least 5 comps), the Actor adds factual "keep" lines, each with its
+number and n: review pace above the comps' median, occupancy at the top of the range, rating above the
+median, a minimum stay equal to the comps' most common one, Instant Book on when most comps have it off, a
+Guest favorite badge that most comps lack.
 
 ---
 
@@ -998,7 +1196,8 @@ the account has no credit), stop. Tell the user Apify's message and the fix: wai
 reset, or upgrade the plan in Apify Console (Billing). Then wait. Never fill the gap with web
 searches, other sites or estimates.
 
-**Airbnb Actors** (all four):
+**Airbnb data Actors** (`airbnb-scraper`, `airbnb-listing-details`, `airbnb-reviews`,
+`airbnb-calendar-occupancy`; the Competitor Analysis Actor has its own table below):
 
 | Code | Meaning | What the bot does |
 |---|---|---|
@@ -1028,6 +1227,26 @@ searches, other sites or estimates.
 A refused input on Google Hotels writes an `OUTPUT` with no `verdictCode`: `stoppedCode` is
 `"invalid_input"`. Read `summary` and fix the input.
 
+**Competitor Analysis** (`airbnb-competitor-analysis`) uses its own codes. It charges only `done`,
+`few_comps` and `partial`, and only last, after delivery; `OUTPUT.charged` says exactly what was charged.
+Read `OUTPUT` even when the run's status is `FAILED`. Every rerun is a new quote and a new yes (its
+`nextStep` gives the cost).
+
+| Code | Meaning | Charged | What the bot tells the user and does |
+|---|---|---|---|
+| `done` | 10 or more comps: the whole analysis | Yes: one analysis, plus the weeks scanned | Present `REPORT_MD` (section 7, "The Actor flow"), then offer `missing` |
+| `few_comps` | 5-9 comps, after relaxing and widening | Yes | First: "fewer than 10 comparable listings: read every number with that in mind" (`REPORT_MD` says it); then present the report |
+| `too_few_comps` | Fewer than 5 comps passed the filters, from a search that completed | No | "Only N comparable listings passed the filters within R km: counts only, no statistics, nothing charged." Give the main reasons from `excluded.byReason` (each candidate is in the `candidates` dataset). Run nothing more without a yes |
+| `partial` | 5 or more comps, but a stage stopped early or failed (`incompleteSteps`) | Yes | Present `REPORT_MD` and say what is not complete (its "Not complete" line) |
+| `listings_gone` | The listing is no longer on Airbnb | No | Say so and ask for the right listing URL |
+| `hotel_listing` | The listing is a hotel listing; the Actor compares homes | No | Say so. For a hotel, offer R2 or R8 with their cost |
+| `invalid_input` | The input was refused (`summary` says why) | No | Fix it: one listing URL or ID in `listing`, a profile only in `hostProfileUrl` |
+| `id_rounded` | A listing ID was sent as a JSON number | No | Resend it as text, or send the URL |
+| `spending_cap` | `maxTotalChargeUsd` is below the price of one analysis | No | Ask before raising it (0.62 covers the Free-plan maximum) |
+| `timeout` / `blocked` / `api_changed` / `request_cap` | The comp search did not complete and fewer than 5 comps were read: not a full count (with 5 or more, the code is `partial`) | No | Say what `summary` says; offer one rerun with its cost (a higher `timeout` for `timeout`) |
+| `aborted` | The run was aborted | No | Confirm it stopped and that nothing was charged |
+| `internal_error` | An unexpected error (`errorId`) | No (unless `charged` says otherwise) | Apologize briefly, offer one rerun with its cost, and suggest reporting the error ID on the Actor's Issues tab |
+
 ---
 
 ## 13. Out of scope (do not build)
@@ -1055,9 +1274,12 @@ A refused input on Google Hotels writes an `OUTPUT` with no `verdictCode`: `stop
 
 **User:** "How do my Airbnb listings compare with my competition? https://www.airbnb.com/users/show/123456789"
 
-**1. Fill the gaps in one message.** *"I'll compare each of your listings with its 15-20 closest real comps.
-Dates: a 5-night stay when your listing is free, picked from its calendar (or yours, if you prefer), 2 adults, USD. First I'll check how many
-listings you have. That's free."*
+This example uses the Competitor Analysis Actor (section 7, "The Actor flow"): one quote, then one run per
+listing.
+
+**1. Fill the gaps in one message.** *"I'll compare each of your listings with its 20 closest real comps.
+Dates: a stay when your listing is free, picked from its calendar (or yours, if you prefer), 2 adults, USD.
+First I'll check how many listings you have. That's free."*
 
 **2. Free count.** Call `call-actor`:
 - `actor`: `thelastscraper/airbnb-scraper`;
@@ -1066,29 +1288,31 @@ listings you have. That's free."*
 
 Then read `OUTPUT` with `get-key-value-store-record`: `summary` says "Host 123456789: 3 listings".
 
-**3. Confirm the cost** (section 7 totals): *"3 listings → up to about $1.22 on Apify's Free plan ($0.96 on
-Bronze), 3-6 minutes. Go?"* Wait for a yes.
+**3. One quote** (section 7, "The Actor flow", step 3): *"3 listings → up to $1.44 on Apify's Free
+plan: up to $0.48 per listing ($0.38 for the analysis plus up to 8 other weeks at $0.0125, only if your
+listing or too few comps have a price for the dates), plus about $0.005 to list your listings. A listing
+with fewer than 5 comps costs nothing. About 2-8 minutes per listing, run in parallel. Go?"* Wait for a yes.
 
-**4. Run the steps in section 7, in order:**
-- step 0b, the calendars, when you gave no dates;
-- step 1 on the profile;
-- steps 2 and 3 per listing, in parallel;
-- step 4, the score, in code;
-- step 5 (step 6 only for studios and 1-bedrooms, by `bedrooms`: a 1-bedroom loft counts).
+**4. List the profile's listings** (section 7, "Only some of the host's listings?"), to get each listing's
+`url`.
 
-Run each one as section 4, rules 7 and 8 say, with `maxTotalChargeUsd` at about 1.3 × that step's
-estimate. Tell the user what is running and roughly how long it takes.
+**5. One run per listing, in parallel.** Call `call-actor`:
+- `actor`: `thelastscraper/airbnb-competitor-analysis`;
+- `input`: `{"listing": "<the listing's url from step 4>", "hostProfileUrl":
+  "https://www.airbnb.com/users/show/123456789", "dates": "auto", "adults": 2, "currency": "USD",
+  "weekScan": "if_needed"}`;
+- `callOptions`: `{"maxTotalChargeUsd": 0.62, "timeout": 900}`.
 
-**5. Apply the hard filters and the score in code** (section 7):
-- drop the host's own listings;
-- check that each comp has the amenities the listing sells;
-- check the format;
-- keep the 20 highest scores, never fewer than 10 without saying so.
+On ChatGPT's connector, send the same input fields to `thelastscraper--airbnb-competitor-analysis`. Tell
+the user what is running and that each run takes about 2-8 minutes.
 
-**6. Answer with the portfolio view first** (section 10):
+**6. Read each run** (section 4, rule 7): `OUTPUT`, then `REPORT_MD`, from its default key-value store.
+Check `verdictCode` first (section 12).
+
+**7. Answer with the portfolio view first** (section 10), each number copied from its run's `OUTPUT`:
 
 ```
-Your 3 listings vs. 20 comps each (Dubai Marina, your dates, 2 adults, USD)
+Your 3 listings vs. their comps (your dates, 2 adults, USD)
 
 | Listing         | Price pct | Occupancy 90d (range)    | Rating vs comps | Biggest gap                 |
 |-----------------|-----------|--------------------------|-----------------|-----------------------------|
@@ -1096,14 +1320,24 @@ Your 3 listings vs. 20 comps each (Dubai Marina, your dates, 2 adults, USD)
 | ...             |           |                          |                 |                             |
 
 Top 3 actions:
-1. [Listing A title](https://www.airbnb.com/rooms/…) (…): lower the price ~8% or fix "noise" (top complaint in
-   its own reviews, 9 of 40 recent ones).
-2. ...
+1. [Listing A title](https://www.airbnb.com/rooms/…) (…): lower the price or fix cleanliness, its lowest
+   sub-rating (85th percentile of 15 priced comps; rating 4.78 vs 4.86, n=20).
+2. [Listing B title](https://www.airbnb.com/rooms/…) (…): room to raise the price: 18% under the median with
+   1.6× the comps' occupancy; test a 10-15% increase.
 3. ...
 (n = 20 comps per listing; 2 of your own units nearby were left out of the comparison.)
 ```
 
-Then offer the per-listing scorecards, the price curve (step 7) or the channel prices (R8).
+Then each listing's `REPORT_MD`, with its numbers unchanged (translated if the user writes in another
+language).
+
+**8. Offer what is missing**, from each run's `OUTPUT.missing`, with its cost: *"Not in this analysis yet:
+3-4 star hotels near your 1-bedroom (about $0.03), your price on Booking.com, Vrbo and Expedia (about
+$0.005), complaint themes in your reviews and the comps' (about $0.15). Want any of them?"* Run each only
+after a yes.
+
+Without the Actor's tool in the chat, follow section 7's manual recipe instead: quote its totals (about
+$1.22 for these 3 listings, Standard), then steps 0b-6.
 
 ---
 
@@ -1117,7 +1351,8 @@ columns in this spec.
   2026-12-06; R4 windows are free before then). Quote them with the rest of the
   request's runs, and confirm before running (section 3, step 5).
 - **"After section 7"** (or R10, or R11) means the answer also uses rows that run returned. If it has
-  not run yet, add its cost: section 7 is about $0.41 (Standard) or $0.28 (Express) per host listing analyzed, its ~20 comps included.
+  not run yet, add its cost: section 7 is up to $0.48 per host listing analyzed with the Competitor Analysis
+  Actor (about $0.41 Standard or $0.28 Express by the manual recipe), its ~20 comps included.
 - **"Partly answerable"** rows must use the wording in their caveat.
 - Sections 4 and 11 apply to every answer. The caveat column lists what each answer must state.
 - The market analyst (journalist, consultant, city planner) is not in section 1's table. Start them
@@ -1127,10 +1362,10 @@ columns in this spec.
 
 | Question | Flow | Key columns or outputs | Caveat to state | Cost (Free plan) |
 |---|---|---|---|---|
-| "How do my listings compare with my real competition, and what should I change first?" | Section 7 | Portfolio view and scorecards (section 10): price percentile, occupancy range, rating and sub-ratings, amenity gaps, top 3 actions | n comps per listing; how many of the host's own units were left out; occupancy is a range ("booked or blocked"); prices are asking prices | About $1.22 for 3 listings; Express $0.83 |
-| "Are my competitors already booked for next weekend? Should I raise my price?" | Section 7, steps 1-4 (Express), with those dates; the demand rule (section 10) | Share booked or blocked (section 7, "Comps booked for the dates"), e.g. "15 of 20"; price percentile on `price_per_night_before_taxes` | "Booked or blocked", and "at least" (section 11, rule 13); the demand rule needs 5+ comps, 70%+ of them booked and the host's listing still free; no price percentile from fewer than 5 priced comps | About $0.28 per host listing, its comps included |
+| "How do my listings compare with my real competition, and what should I change first?" | Section 7 | Portfolio view and scorecards (section 10): price percentile, occupancy range, rating and sub-ratings, amenity gaps, top 3 actions | n comps per listing; how many of the host's own units were left out; occupancy is a range ("booked or blocked"); prices are asking prices | Up to $1.44 for 3 listings with the Competitor Analysis Actor ($0.48 each); by the manual recipe about $1.22, Express $0.83 |
+| "Are my competitors already booked for next weekend? Should I raise my price?" | Section 7: the Competitor Analysis Actor with `"dates": "explicit"` and those dates (manual fallback: steps 1-4, Express); the demand rule (section 10) | Share booked or blocked (section 7, "Comps booked for the dates"), e.g. "15 of 20"; price percentile on `price_per_night_before_taxes` | "Booked or blocked", and "at least" (section 11, rule 13); the demand rule needs 5+ comps, 70%+ of them booked and the host's listing still free; no price percentile from fewer than 5 priced comps | Up to $0.48 per host listing with the Actor; about $0.28 by the manual Express recipe; comps included either way |
 | "Which nights in the next few months are hot near me, and is my price high enough on them?" | Section 8, "Hot dates" (R7 with `"calendarDays": true` on 30+ comps), then R4 windows on those nights (`dateWindows` also takes explicit stays: `{"checkIn": "…", "checkOut": "…"}`) | Hot dates (20+ points above the median of the 14 days before and after); the host's price percentile on them | A share of comps booked or blocked, not a count of bookings; the next 15 days are left out; future percentiles lean high: say how many comps had no quote | After section 7: about $0.17, plus about $0.11 per host listing, its comps included |
-| "Do I have gaps my minimum stay can't sell? What minimum do my comps use midweek?" | Section 8, "Orphan nights and minimum stay" | Free gaps shorter than `min_nights` in the host's daily rows; the comps' `min_nights` by weekday from their daily rows (R7) | Gaps sit between booked-or-blocked nights; public calendars can't tell which | $0 after section 7 (step 1 has the host's daily rows); the comps' daily rows: about $0.11 for 20. The host's calendar alone (R7): $0.0055 per listing |
+| "Do I have gaps my minimum stay can't sell? What minimum do my comps use midweek?" | Section 8, "Orphan nights and minimum stay" | Free gaps shorter than `min_nights` in the host's daily rows; the comps' `min_nights` by weekday from their daily rows (R7) | Gaps sit between booked-or-blocked nights; public calendars can't tell which | $0 after the manual section 7 (step 1 has the host's daily rows); the comps' daily rows: about $0.11 for 20. The host's calendar alone (R7; also after the Competitor Analysis Actor, which offers it in `missing`): $0.0055 per listing |
 | "What do my guests complain about most, and do guests say the same about my competitors?" | R5 on the host's listings; section 7, step 5, for the comps | Complaint themes per 100 reviews, `review_tags`, `rating_3_or_less_pct`, the host vs. the comps | Fixes come only from the host's own reviews; the comps' themes are market context; give the number of reviews read | $0.01 per listing (20 reviews); the comps' reviews: about $0.10 per host listing (20 comps × 10 reviews) |
 | "Would a hot tub let me charge more here?" | Section 9's rule on the comp set (section 8, "Amenities that pay here") | Median `price_per_night_before_taxes` with vs. without it (`key_amenities`, `has_*`), n on each side | An association, not a cause; groups under 15 are "indicative"; with fewer than 5 priced comps on a side, use section 9's measured list and say so; never "add X and earn Y" | $0 after section 7 |
 | "How does my price compare with my comps week by week over the next two months, weekends included?" | Section 8, "Future price vs. comps" (section 7, step 7, with two sets of windows in one `dateWindows`: weekends and midweek) | Percentile per week, weekend premium, `discount_labels` | Future percentiles lean high (section 11, rule 4): say how many comps had no quote each week; the same windows for the host and the comps | About $0.19 per host listing, its comps included, after section 7 ($0.03 before 2026-12-06) |
@@ -1140,7 +1375,7 @@ columns in this spec.
 
 | Question | Flow | Key columns or outputs | Caveat to state | Cost (Free plan) |
 |---|---|---|---|---|
-| "Which of my 40 listings are mispriced against their comps?" | R10, steps 1-4 | Flags per listing (section 10 rules), grouped by area and type | No price flag for a listing with no price for the dates: say how many; n comps per listing; the full section 7 (step 5) only for the most flagged, after a yes | About $4.50-6.10 for 40 listings: say it can pass Apify's $5 free monthly usage. Step 5: about $0.41 per host listing, its comps included |
+| "Which of my 40 listings are mispriced against their comps?" | R10, steps 1-4 | Flags per listing (section 10 rules), grouped by area and type | No price flag for a listing with no price for the dates: say how many; n comps per listing; the full section 7 (step 5) only for the most flagged, after a yes | About $4.50-6.10 for 40 listings: say it can pass Apify's $5 free monthly usage. Step 5: up to $0.48 per host listing with the Competitor Analysis Actor, its comps included |
 | "Which units have the weakest occupancy for the next 90 days compared with their comps?" | R10, step 4: "occupancy at the bottom of the range" | Each unit's range (`est_occupancy_calendar_adjusted_90` to `est_occupancy_calendar_90`) vs. its comps' 25th percentile | Ranges, "booked or blocked"; the next 90 days only, never last year; owner blocks raise the ceiling | $0 after R10, steps 1-4 |
 | "Where are my calendars losing nights to orphan gaps, across the whole portfolio?" | Section 8, "Orphan nights", from R7 with `"calendarDays": true` on the portfolio's listing IDs | Gaps shorter than `min_nights` per unit, nights lost, units ranked | Gaps sit between booked-or-blocked nights | $0.0055 per listing (50 listings: about $0.28) |
 | "Which dates ahead are hot in each of my areas, and which units still charge a normal rate on them?" | Section 8, "Hot dates", per area group (R10, step 2), then R4 on the units there | Hot dates per area; each unit's price on them vs. its own price in the weeks around them | A booked-or-blocked share, not bookings; the next 15 days are left out; a unit booked on a hot date has no price there | About $0.17 per area (daily calendars of 30 listings from R10, step 3), plus $0.007 per unit for 12 windows ($0.0015 before 2026-12-06) |
